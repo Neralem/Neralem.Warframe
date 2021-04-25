@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Neralem.Warframe.MarketCrawler</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Neralem.Warframe.Core\Neralem.Warframe.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Neralem.Wpf">
+      <HintPath>..\..\- Neralem\Neralem.Wpf\bin\Debug\net5.0-windows\Neralem.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="Neralem.Wpf.Mvvm">
+      <HintPath>..\..\- Neralem\Neralem.Wpf.Mvvm\bin\Debug\net5.0\Neralem.Wpf.Mvvm.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

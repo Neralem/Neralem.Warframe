@@ -1,0 +1,15 @@
+﻿<Application x:Class="MarketCrawler.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="Views/Dialogs/MainWindow.xaml">
+    <Application.Resources>
+         <ResourceDictionary>
+             <ResourceDictionary.MergedDictionaries>
+                 <ResourceDictionary Source="pack://application:,,,/Neralem.Wpf;component/Localizations/DE.xaml"/>
+                 <ResourceDictionary Source="pack://application:,,,/Neralem.Wpf;component/UI/Themes/Theme.Dark.xaml"/>
+                 <ResourceDictionary Source="pack://application:,,,/Neralem.Wpf;component/UI/Themes/SharedStyles.xaml"/>
+                 <ResourceDictionary Source="pack://application:,,,/Neralem.Wpf;component/ValueConverters/ConvertersResourceDictionary.xaml"/>
+             </ResourceDictionary.MergedDictionaries>
+         </ResourceDictionary>
+    </Application.Resources>
+</Application>
