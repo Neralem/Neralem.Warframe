@@ -121,6 +121,20 @@ namespace MarketCrawler.ViewModels
 
         #region Binding Properties
 
+        private string title = "Market Crawler";
+        public string Title
+        {
+            get => title;
+            set 
+            { 
+                if (value != title)
+                {
+                    title = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private OrdersUpdateProgress ordersUpdateProgress;
         public OrdersUpdateProgress OrdersUpdateProgress
         {
@@ -149,6 +163,21 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        private OrderCollection filteredOrders;
+        public OrderCollection FilteredOrders
+        {
+            get => filteredOrders;
+            set 
+            { 
+                if (value != filteredOrders)
+                {
+                    filteredOrders = value;
+                    OnPropertyChanged();
+                    Title = $"Market Crawler - {Orders.Count} Orders ({FilteredOrders.Count}) Shown";
+                }
+            }
+        }
+
         private OrderCollection orders;
         public OrderCollection Orders
         {
@@ -159,6 +188,7 @@ namespace MarketCrawler.ViewModels
                 {
                     orders = value;
                     OnPropertyChanged();
+                    FilteredOrders = new OrderCollection(Orders.Where(x => x.User.OnlineStatus == OnlineStatus.Ingame && x.Quantity <= 20).ToArray());
                 }
             }
         }
