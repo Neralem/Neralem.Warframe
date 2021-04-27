@@ -8,6 +8,7 @@
                 xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
                 xmlns:valueConverters="clr-namespace:Neralem.Wpf.ValueConverters;assembly=Neralem.Wpf"
                 xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+                xmlns:doMs="clr-namespace:Neralem.Warframe.Core.DOMs;assembly=Neralem.Warframe.Core"
                 mc:Ignorable="d" Title="{Binding Title}" WindowStartupLocation="CenterScreen"
                 Height="450" Width="800" Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:MainVm}">
     <dialogs:StylableWindow.Resources>
@@ -539,8 +540,13 @@
     <Grid Margin="5">
         <Grid.Resources>
             <valueConverters:BoolToVisibilityCollapsedConverter x:Key="BoolToVisibilityCollapsedConverter"/>
+            <valueConverters:DebugValueConverter x:Key="DebugValueConverter"/>
             <valueConverters:ValueConverterGroup x:Key="InvertedBoolToVisibilityCollapsedConverter">
                 <valueConverters:InvertBoolConverter/>
+                <valueConverters:BoolToVisibilityCollapsedConverter/>
+            </valueConverters:ValueConverterGroup>
+            <valueConverters:ValueConverterGroup x:Key="ValueIsGreaterThanToVisibilityCollapsedConverter">
+                <valueConverters:ValueIsGreaterThanToBoolConverter/>
                 <valueConverters:BoolToVisibilityCollapsedConverter/>
             </valueConverters:ValueConverterGroup>
         </Grid.Resources>
@@ -562,6 +568,17 @@
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
                 <DataGridTextColumn Header="User" Binding="{Binding User.Name, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Online Status" Binding="{Binding User.OnlineStatus, Mode=OneWay}"/>
+                <DataGridTemplateColumn CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type doMs:Order}">
+                            <StackPanel Orientation="Horizontal">
+                                <controls:ExtButton Content="/w" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserCommand}" CommandParameter="{Binding}"/>
+                                <controls:ExtButton Content="/w all" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserBuyAllCommand}" CommandParameter="{Binding}"
+                                                    Visibility="{Binding Quantity, Converter={StaticResource ValueIsGreaterThanToVisibilityCollapsedConverter}, ConverterParameter=1}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

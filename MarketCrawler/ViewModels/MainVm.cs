@@ -65,7 +65,7 @@ namespace MarketCrawler.ViewModels
 
                         OrderCollection newOrders = new();
                         UserCollection newUsers = Users ?? new UserCollection();
-                        Item[] itemsToScanFor = Items.Where(x => x is PrimePart or PrimeSet).ToArray();
+                        Item[] itemsToScanFor = Items.Where(x => x is PrimePart { Ducats: > 15 } or PrimeSet).ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
                         try
@@ -88,7 +88,7 @@ namespace MarketCrawler.ViewModels
                                     newOrders.AddRange(orderForItem);
                                     itemsDone++;
                                 }
-                                await Task.Delay(333);
+                                await Task.Delay(100);
                             }
 
                             foreach (User user in newUsers)
@@ -103,6 +103,42 @@ namespace MarketCrawler.ViewModels
                         Users = newUsers;
                     },
                     _ => !IsDownloadingOrders);
+            }
+        }
+
+        private ICommand whisperUserCommand;
+        public ICommand WhisperUserCommand
+        {
+            get
+            {
+                return whisperUserCommand ??= new RelayCommand(
+                    param =>
+                    {
+                        if (param is not Order order)
+                            return;
+
+                        Clipboard.SetText($"/w {order.User.Name} Hi! I want to buy your {order.Item.Name} for {order.UnitPrice} :platinum:");
+                    },
+                    _ => true);
+            }
+        }
+
+        private ICommand whisperUserBuyAllCommand;
+        public ICommand WhisperUserBuyAllCommand
+        {
+            get
+            {
+                return whisperUserBuyAllCommand ??= new RelayCommand(
+                    param =>
+                    {
+                        if (param is not Order order)
+                            return;
+
+                        Clipboard.SetText(order.Quantity == 2
+                            ? $"/w {order.User.Name} Hi! I want to buy your {order.Item.Name} for {order.UnitPrice} :platinum: each. I want both, so...let me do the Math... {order.TotalPlat} :platinum:, right?"
+                            : $"/w {order.User.Name} Hi! I want to buy your {order.Item.Name} for {order.UnitPrice} :platinum: each. I want all {order.Quantity}, so...let me do the Math... {order.TotalPlat} :platinum:, right?");
+                    },
+                    _ => true);
             }
         }
 
