@@ -33,4 +33,12 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <_DeploymentManifestIconFile Remove="icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_DeploymentManifestIconFile Remove="icon.ico" />
+  </ItemGroup>
+
 </Project>

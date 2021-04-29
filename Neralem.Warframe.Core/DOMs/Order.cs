@@ -10,6 +10,7 @@ namespace Neralem.Warframe.Core.DOMs
         public string Id { get; }
         public int Quantity { get; set; }
         public int UnitPrice { get; set; }
+        public bool Visible { get; set; }
         public OrderType OrderType { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime ModificationDate { get; set; }

@@ -10,7 +10,7 @@
                 xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
                 xmlns:doMs="clr-namespace:Neralem.Warframe.Core.DOMs;assembly=Neralem.Warframe.Core"
                 mc:Ignorable="d" Title="{Binding Title}" WindowStartupLocation="CenterScreen"
-                Height="450" Width="800" Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:MainVm}">
+                Height="450" Width="900" Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:MainVm}">
     <dialogs:StylableWindow.Resources>
         <!--Control colors.-->
         <!--<Color x:Key="WindowColor">#FFE8EDF9</Color>
@@ -561,7 +561,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Item.Name, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
-                <DataGridTextColumn Header="Ducats/Plat" Binding="{Binding DucatsPerPlatinum, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Ducats/Plat" Binding="{Binding DucatsPerPlatinum, Mode=OneWay, StringFormat=N2}"/>
                 <DataGridCheckBoxColumn Header="Vaulted" Binding="{Binding Item.IsVaulted, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>

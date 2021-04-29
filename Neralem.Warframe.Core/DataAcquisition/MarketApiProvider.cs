@@ -262,7 +262,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
         #region Orders
 
-        public async Task<OrderCollection> GetOrdersForItemJsonFromApiAsync(Item item, UserCollection users, OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame, bool onlyVisibleOrders = true)
+        public async Task<OrderCollection> GetOrdersForItemJsonFromApiAsync(Item item, UserCollection users, OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
         {
             const int maxRetries = 2;
             int tries = 0;
@@ -283,8 +283,6 @@ namespace Neralem.Warframe.Core.DataAcquisition
             {
                 string id = jOrder["id"]?.ToObject<string>();
                 string userId = jOrder["user"]?["id"]?.ToObject<string>();
-                if (jOrder["visible"]?.ToObject<bool>() is not bool visible || onlyVisibleOrders && !visible)
-                    continue;
                 if (jOrder["user"]?["status"]?.ToObject<OnlineStatus>(serializer) is not OnlineStatus onlineStatus || onlineStatus == OnlineStatus.Undefined)
                     continue;
                 if (onlineStatus < minUserOnlineStatus)
@@ -318,6 +316,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
                 if (jOrder["quantity"]?.ToObject<int>() is not int quantity ||
                     jOrder["platinum"]?.ToObject<int>() is not int price ||
+                    jOrder["visible"]?.ToObject<bool>() is not bool visible ||
                     jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType || orderType == OrderType.Undefined ||
                     jOrder["creation_date"]?.ToObject<DateTime>() is not DateTime creationDate ||
                     jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate
@@ -328,6 +327,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 {
                     Item = item, 
                     User = user,
+                    Visible = visible,
                     Quantity = quantity,
                     UnitPrice = price,
                     OrderType = orderType,
