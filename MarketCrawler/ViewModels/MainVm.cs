@@ -94,6 +94,12 @@ namespace MarketCrawler.ViewModels
                                     newOrders.AddRange(orderForItem);
                                     itemsDone++;
                                 }
+#if DEBUG
+                                if (itemsDone >= 10)
+                                {
+                                   break;
+                                }
+#endif
                                 await Task.Delay(100);
                             }
 
