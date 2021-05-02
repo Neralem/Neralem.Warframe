@@ -282,11 +282,7 @@ namespace MarketCrawler.ViewModels
         public ObservableCollection<Item> ComboBoxItemsSuggestion
         {
             get => comboBoxItemsSuggestion;
-            set
-            {
-                comboBoxItemsSuggestion = value;
-
-            }
+            
         }
 
         private string searchString = string.Empty;
@@ -298,14 +294,15 @@ namespace MarketCrawler.ViewModels
                 if (value != searchString)
                 {
                     searchString = value;
-                    Item[] temp = items.Where(x => x.Name.ToLower().Contains(searchString.ToLower())).ToArray();
-                    foreach(Item it in temp)
+                    Item[] temp = items.Where(x => x.Name.Contains(searchString, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+                    if(ComboBoxItemsSuggestion.Count ==0)
                     {
-                        if(it != null)
+                        foreach(Item it in temp)
                         {
                             ComboBoxItemsSuggestion?.Add(it);
                         }
                     }
+
                     OnPropertyChanged();
                     //FilteredOrders = FilterOrders();
                 }

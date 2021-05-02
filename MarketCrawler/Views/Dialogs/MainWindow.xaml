@@ -575,9 +575,14 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <ComboBox IsEditable="True" ItemsSource="{Binding ComboBoxItemsSuggestion}"
+            <ComboBox IsEditable="True"
+                      IsTextSearchCaseSensitive="False"
+                      IsTextSearchEnabled="True"
+                      ItemsSource="{Binding ComboBoxItemsSuggestion}"
                       DisplayMemberPath="Name" 
-                      Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  Grid.Column="0">
+                      Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  Grid.Column="0"
+                      MaxDropDownHeight="250"
+                      >
                 <b:Interaction.Triggers>
                     <b:KeyTrigger Key="Enter">
                         <b:InvokeCommandAction Command="{Binding SearchCommand}" />
