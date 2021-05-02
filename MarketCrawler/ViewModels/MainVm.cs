@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using Neralem.Wpf;
 
 namespace MarketCrawler.ViewModels
 {
@@ -29,7 +30,7 @@ namespace MarketCrawler.ViewModels
                     {
                         try
                         {
-                            CancellationTokenSource updateCtr = new CancellationTokenSource();
+                            CancellationTokenSource updateCtr = new();
                             Progress<ItemUpdateProgress> progress = new();
                             Task<ItemCollection> getItemsTask = ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items, UpdateAllItems);
                             ItemsUpdateProgressDialog updateProgressDialog = new() { Owner = Application.Current.MainWindow };
@@ -95,6 +96,7 @@ namespace MarketCrawler.ViewModels
 #if DEBUG
                                 if (itemsDone >= 10)
                                 {
+
                                     break;
                                 }
 #endif
@@ -264,6 +266,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        private Debouncer SearchDebouncer { get; } = new ();
         private string searchString = string.Empty;
         public string SearchString
         {
@@ -274,7 +277,7 @@ namespace MarketCrawler.ViewModels
                 {
                     searchString = value;
                     OnPropertyChanged();
-                    FilteredOrders = FilterOrders();
+                    SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredOrders = FilterOrders());
                 }
             }
         }
@@ -294,6 +297,7 @@ namespace MarketCrawler.ViewModels
                 return new OrderCollection();
 
             IEnumerable<Order> filtered = Orders
+                .Where(x => !x.User.Blocked)
                 .Where(x => x.User.OnlineStatus == OnlineStatus.Ingame)
                 .Where(x => x.OrderType == OrderType.Sell)
                 .Where(x => x.Quantity <= 20);
