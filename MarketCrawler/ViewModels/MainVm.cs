@@ -95,7 +95,6 @@ namespace MarketCrawler.ViewModels
 #if DEBUG
                                 if (itemsDone >= 10)
                                 {
-
                                     break;
                                 }
 #endif
@@ -291,7 +290,7 @@ namespace MarketCrawler.ViewModels
 
         private OrderCollection FilterOrders()
         {
-            if (FilteredOrders is null || Orders is null)
+            if (Orders is null)
                 return new OrderCollection();
 
             IEnumerable<Order> filtered = Orders
