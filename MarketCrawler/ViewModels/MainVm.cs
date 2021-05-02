@@ -95,6 +95,7 @@ namespace MarketCrawler.ViewModels
 #if DEBUG
                                 if (itemsDone >= 10)
                                 {
+
                                     break;
                                 }
 #endif
