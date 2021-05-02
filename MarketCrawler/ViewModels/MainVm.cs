@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -93,12 +92,12 @@ namespace MarketCrawler.ViewModels
                                     newOrders.AddRange(orderForItem);
                                     itemsDone++;
                                 }
-                                //#if DEBUG
-                                //                                if (itemsDone >= 10)
-                                //                                {
-                                //                                   break;
-                                //                                }
-                                //#endif
+#if DEBUG
+                                if (itemsDone >= 10)
+                                {
+                                    break;
+                                }
+#endif
                                 await Task.Delay(100);
                             }
 
