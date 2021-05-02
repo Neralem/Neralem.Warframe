@@ -13,6 +13,7 @@ namespace Neralem.Warframe.Core.DOMs
         public int Reputation { get; set; }
         public DateTime? LastSeen { get; set; }
         public List<Order> Orders { get; } = new();
+        public bool Blocked { get; set; }
 
         public User(string id, string name)
         {

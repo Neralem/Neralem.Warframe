@@ -203,7 +203,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DataGridCell}">
-                        <Border x:Name="border" BorderBrush="Transparent" BorderThickness="1" Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="border" BorderBrush="Transparent" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent" SnapsToDevicePixels="True">
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup x:Name="FocusStates">
                                     <VisualState x:Name="Unfocused"/>
@@ -220,7 +220,7 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -484,7 +484,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
-                        <Grid>
+                        <Grid Background="{TemplateBinding Background}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -504,12 +504,6 @@
                                         <GradientStop Color="{DynamicResource BorderDarkColor}" Offset="1" />
                                     </LinearGradientBrush>
                                 </Border.BorderBrush>
-                                <Border.Background>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="{DynamicResource ControlLightColor}" Offset="0" />
-                                        <GradientStop Color="{DynamicResource ControlMediumColor}" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Border.Background>
                                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                             </Border>
 
@@ -532,14 +526,7 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="{DynamicResource ControlLightColor}" Offset="0" />
-                        <GradientStop Color="{DynamicResource ControlMediumColor}" Offset="1" />
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Background" Value="{StaticResource Brush.Background.Primary}"/>
         </Style>
 
         <!--Style and template for the DataGridColumnHeadersPresenter.-->
@@ -576,24 +563,38 @@
             </valueConverters:ValueConverterGroup>
         </Grid.Resources>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <DataGrid Grid.Row="0" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True">
+        <TextBox Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                            <Setter Property="BorderThickness" Value="0" />
+                </Style>
+            </DataGrid.CellStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Item.Name, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Ducats/Plat" Binding="{Binding DucatsPerPlatinum, Mode=OneWay, StringFormat=N2}"/>
-                <DataGridCheckBoxColumn Header="Vaulted" Binding="{Binding Item.IsVaulted, Mode=OneWay}"/>
+                <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type doMs:Order}">
+                            <CheckBox IsChecked="{Binding Item.IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
                 <DataGridTextColumn Header="User" Binding="{Binding User.Name, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Online Status" Binding="{Binding User.OnlineStatus, Mode=OneWay}"/>
-                <DataGridTemplateColumn CanUserResize="False">
+                <DataGridTemplateColumn CanUserResize="False" CanUserSort="False" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <StackPanel Orientation="Horizontal">
@@ -607,11 +608,11 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Grid Grid.Row="2" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource BoolToVisibilityCollapsedConverter}}">
+        <Grid Grid.Row="3" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource BoolToVisibilityCollapsedConverter}}">
             <ProgressBar Height="20" Minimum="0" Maximum="1" Value="{Binding OrdersUpdateProgress.PercentageDone, Mode=OneWay}"/>
             <TextBlock Text="{Binding OrdersUpdateProgress.PercentageDone, StringFormat=p0, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
-        <controls:ExtButton Grid.Row="3" Content="Update" HorizontalAlignment="Right" Command="{Binding UpdateOrdersCommand}" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource InvertedBoolToVisibilityCollapsedConverter}}"/>
+        <controls:ExtButton Grid.Row="4" Content="Update" HorizontalAlignment="Right" Command="{Binding UpdateOrdersCommand}" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource InvertedBoolToVisibilityCollapsedConverter}}"/>
 
     </Grid>
 </dialogs:StylableWindow>

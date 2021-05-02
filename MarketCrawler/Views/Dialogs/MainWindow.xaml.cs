@@ -1,4 +1,5 @@
-﻿using MarketCrawler.ViewModels;
+﻿using System.Linq;
+using MarketCrawler.ViewModels;
 
 namespace Neralem.Warframe.MarketCrawler.Views.Dialogs
 {

@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using Neralem.Warframe.Core.DataStorage.JsonConverter;
+using Newtonsoft.Json;
 
 namespace Neralem.Warframe.Core.DOMs
 {
@@ -17,6 +20,14 @@ namespace Neralem.Warframe.Core.DOMs
         public UserCollection(IEnumerable<User> users) => AddRange(users);
 
         public void AddRange(IEnumerable<User> users) => InternalUsers.AddRange(users);
+
+        public static UserCollection FromFile(string filename)
+        {
+            string data = File.ReadAllText(filename);
+            return JsonConvert.DeserializeObject<UserCollection>(data, new UserCollectionJsonConverter());
+        }
+
+        public void ToFile(string filename) => File.WriteAllText(filename, JsonConvert.SerializeObject(this, Formatting.Indented, new UserCollectionJsonConverter()));
 
         #region Implementation of ICollection
 

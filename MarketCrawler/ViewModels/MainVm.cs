@@ -3,18 +3,16 @@ using Neralem.Warframe.Core.DataAcquisition;
 using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Data;
 using System.Windows.Input;
-using MarketCrawler.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace MarketCrawler.ViewModels
 {
@@ -54,6 +52,8 @@ namespace MarketCrawler.ViewModels
                             Items.ToFile(ItemsFilename);
                         }
                         catch (TaskCanceledException) { }
+
+                        UpdateOrdersCommand.Execute(null);
                     },
                     _ => true);
             }
@@ -70,7 +70,6 @@ namespace MarketCrawler.ViewModels
                         IsDownloadingOrders = true;
 
                         OrderCollection newOrders = new();
-                        UserCollection newUsers = Users ?? new UserCollection();
                         Item[] itemsToScanFor = Items.Where(x => x is PrimePart { Ducats: > 15 } or PrimeSet).ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
@@ -85,7 +84,7 @@ namespace MarketCrawler.ViewModels
                                     ItemsScanned = itemsDone,
                                     TotalItemsToScan = itemsToScanFor.Length
                                 });
-                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemJsonFromApiAsync(item, newUsers, OnlineStatus.Undefined);
+                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemJsonFromApiAsync(item, Users, OnlineStatus.Undefined);
 
                                 if (orderForItem is null)
                                     itemsFailed++;
@@ -94,25 +93,26 @@ namespace MarketCrawler.ViewModels
                                     newOrders.AddRange(orderForItem);
                                     itemsDone++;
                                 }
-#if DEBUG
-                                if (itemsDone >= 10)
-                                {
-                                   break;
-                                }
-#endif
+                                //#if DEBUG
+                                //                                if (itemsDone >= 10)
+                                //                                {
+                                //                                   break;
+                                //                                }
+                                //#endif
                                 await Task.Delay(100);
                             }
 
-                            foreach (User user in newUsers)
+                            foreach (User user in Users)
                                 user.Orders.Clear();
 
                             foreach (Order order in newOrders)
                                 order.User.Orders.Add(order);
+
+                            Users.ToFile(UsersFilename);
                         }
                         finally { IsDownloadingOrders = false; }
 
                         Orders = newOrders;
-                        Users = newUsers;
                     },
                     _ => !IsDownloadingOrders);
             }
@@ -158,10 +158,9 @@ namespace MarketCrawler.ViewModels
 
         private readonly Progress<OrdersUpdateProgress> _ordersUpdateProgress = new();
         private static string ItemsFilename => "Items.json";
-        private static string BlockedUsersFilename => "BlockedUsers.json";
+        private static string UsersFilename => "Users.json";
         public MarketApiProvider ApiProvider { get; } = new();
         public bool UpdateAllItems { get; set; } = false;
-        public ObservableCollection<BlockedUser> BlockedUsers { get; private set; }
 
         #region Binding Properties
 
@@ -217,7 +216,7 @@ namespace MarketCrawler.ViewModels
                 {
                     filteredOrders = value;
                     OnPropertyChanged();
-                    Title = $"Market Crawler - {Orders.Count} Orders ({FilteredOrders.Count}) Shown";
+                    Title = FilteredOrders is not null && Orders is not null ? $"Market Crawler - {Orders.Count} Orders ({FilteredOrders.Count}) Shown" : "Market Crawler";
                 }
             }
         }
@@ -232,7 +231,7 @@ namespace MarketCrawler.ViewModels
                 {
                     orders = value;
                     OnPropertyChanged();
-                    FilteredOrders = new OrderCollection(Orders.Where(x => x.User.OnlineStatus == OnlineStatus.Ingame && x.OrderType == OrderType.Sell && x.Quantity <= 20).ToArray());
+                    FilteredOrders = FilterOrders();
                     CollectionViewSource.GetDefaultView(FilteredOrders).SortDescriptions.Add(new SortDescription(nameof(Order.DucatsPerPlatinum), ListSortDirection.Descending));
                 }
             }
@@ -266,29 +265,44 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        private string searchString = string.Empty;
+        public string SearchString
+        {
+            get => searchString;
+            set 
+            { 
+                if (value != searchString)
+                {
+                    searchString = value;
+                    OnPropertyChanged();
+                    FilteredOrders = FilterOrders();
+                }
+            }
+        }
+
         #endregion
 
         public MainVm()
         {
             Items = File.Exists(ItemsFilename) ? ItemCollection.FromFile(ItemsFilename) : new ItemCollection();
-            LoadBlockedUsers(BlockedUsersFilename);
+            Users = File.Exists(UsersFilename) ? UserCollection.FromFile(UsersFilename) : new UserCollection();
             _ordersUpdateProgress.ProgressChanged += (_, progress) => OrdersUpdateProgress = progress;
         }
 
-        public void LoadBlockedUsers(string filename)
+        private OrderCollection FilterOrders()
         {
-            if (!File.Exists(BlockedUsersFilename))
-                return;
-            string json = File.ReadAllText(filename);
-            BlockedUser[] blockedUsers = JArray.Parse(json).ToObject<BlockedUser[]>();
-            if (blockedUsers is not null)
-                BlockedUsers = new ObservableCollection<BlockedUser>();
-        }
+            if (FilteredOrders is null || Orders is null)
+                return new OrderCollection();
 
-        public void SaveBlockedUsers(string filename)
-        {
-            string json = JsonConvert.SerializeObject(BlockedUsers.Select(x => new { id = x.Id, name = x.Name }).ToArray());
-            File.WriteAllText(filename, json);
+            IEnumerable<Order> filtered = Orders
+                .Where(x => x.User.OnlineStatus == OnlineStatus.Ingame)
+                .Where(x => x.OrderType == OrderType.Sell)
+                .Where(x => x.Quantity <= 20);
+
+            if (!string.IsNullOrWhiteSpace(SearchString))
+                filtered = filtered.Where(x => x.Item.Name.Contains(SearchString, StringComparison.InvariantCultureIgnoreCase) || x.User.Name.Contains(SearchString, StringComparison.InvariantCultureIgnoreCase));
+
+            return new OrderCollection(filtered.ToArray());
         }
     }
 }

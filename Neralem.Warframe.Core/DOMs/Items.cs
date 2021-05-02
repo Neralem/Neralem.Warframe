@@ -46,7 +46,7 @@ namespace Neralem.Warframe.Core.DOMs
         public List<Relic> DropsFrom { get; } = new();
         public int Ducats { get; set; }
         public PrimeSet Set { get; set; }
-        public bool IsVaulted => DropsFrom.Any(x => !x.IsVaulted);
+        public bool IsVaulted => DropsFrom.All(x => x.IsVaulted);
 
         public PrimePart(string id) : base(id) { }
         public override string ToString() => $"{Name}   [Vaulted: {IsVaulted}]";
@@ -57,7 +57,7 @@ namespace Neralem.Warframe.Core.DOMs
         public List<PrimePart> Parts { get; } = new();
         public int Ducats => Parts.Sum(x => x.Ducats);
         public Relic[] DropsFrom => Parts.SelectMany(x => x.DropsFrom).ToArray();
-        public bool IsVaulted => Parts.Any(x => !x.IsVaulted);
+        public bool IsVaulted => Parts.Any(x => x.IsVaulted);
 
         public PrimeSet(string id) : base(id) { }
         public override string ToString() => $"[Set]   {Name}   [Vaulted: {IsVaulted}]";

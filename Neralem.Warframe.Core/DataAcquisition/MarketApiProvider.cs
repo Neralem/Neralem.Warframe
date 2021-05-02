@@ -244,6 +244,11 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 if (relic is null)
                     continue;
 
+                if (relic.Drops.Any(x => x.Key.Name.Contains("Glaive")))
+                {
+
+                }
+
                 switch (match.Groups[3].Value)
                 {
                     case "0":
@@ -319,8 +324,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                     jOrder["visible"]?.ToObject<bool>() is not bool visible ||
                     jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType || orderType == OrderType.Undefined ||
                     jOrder["creation_date"]?.ToObject<DateTime>() is not DateTime creationDate ||
-                    jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate
-                    )
+                    jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate)
                     continue;
 
                 Order order = new(id)
