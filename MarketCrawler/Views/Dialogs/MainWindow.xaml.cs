@@ -9,6 +9,8 @@ namespace Neralem.Warframe.MarketCrawler.Views.Dialogs
         {
             InitializeComponent();
             DataContext = new MainVm();
+
         }
+
     }
 }

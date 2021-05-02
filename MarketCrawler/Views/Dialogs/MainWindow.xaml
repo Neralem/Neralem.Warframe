@@ -542,7 +542,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        
     </dialogs:StylableWindow.Resources>
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
@@ -569,8 +569,27 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-        <TextBox Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+            <ComboBox IsEditable="True" ItemsSource="{Binding ComboBoxItemsSuggestion}"
+                      DisplayMemberPath="Name" 
+                      Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"  Grid.Column="0">
+                <b:Interaction.Triggers>
+                    <b:KeyTrigger Key="Enter">
+                        <b:InvokeCommandAction Command="{Binding SearchCommand}" />
+                    </b:KeyTrigger>
+                </b:Interaction.Triggers>
+            </ComboBox>
+            <controls:ExtButton Content="Search" Command="{Binding SearchCommand}" Grid.Column="1"
+                    Width="150" HorizontalAlignment="Right"/>
+
+        </Grid>
+
+
 
         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
             <DataGrid.CellStyle>

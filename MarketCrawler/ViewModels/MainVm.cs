@@ -4,6 +4,7 @@ using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -152,6 +153,20 @@ namespace MarketCrawler.ViewModels
                     _ => true);
             }
         }
+        private ICommand searchCommand;
+        public ICommand SearchCommand
+        {
+            get
+            {
+                return searchCommand ??= new RelayCommand(
+                     _ =>
+                    {
+                        
+                        FilteredOrders = FilterOrders();
+                    },
+                    _ => true);
+            }
+        }
 
         #endregion
 
@@ -263,6 +278,16 @@ namespace MarketCrawler.ViewModels
                 }
             }
         }
+        private ObservableCollection<Item> comboBoxItemsSuggestion = new ObservableCollection<Item>(); 
+        public ObservableCollection<Item> ComboBoxItemsSuggestion
+        {
+            get => comboBoxItemsSuggestion;
+            set
+            {
+                comboBoxItemsSuggestion = value;
+
+            }
+        }
 
         private string searchString = string.Empty;
         public string SearchString
@@ -273,12 +298,20 @@ namespace MarketCrawler.ViewModels
                 if (value != searchString)
                 {
                     searchString = value;
+                    Item[] temp = items.Where(x => x.Name.ToLower().Contains(searchString.ToLower())).ToArray();
+                    foreach(Item it in temp)
+                    {
+                        if(it != null)
+                        {
+                            ComboBoxItemsSuggestion?.Add(it);
+                        }
+                    }
                     OnPropertyChanged();
-                    FilteredOrders = FilterOrders();
+                    //FilteredOrders = FilterOrders();
                 }
             }
         }
-
+    
         #endregion
 
         public MainVm()
