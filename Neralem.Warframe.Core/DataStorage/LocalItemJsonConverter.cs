@@ -62,7 +62,10 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
             switch (type)
             {
                 case ItemType.Relic:
-                    item = new Relic(id);
+                    item = new Relic(id)
+                    {
+                        Tier = jObject["ducats"]?.ToObject<RelicTier>() ?? RelicTier.Undefined
+                    };
                     break;
                 case ItemType.PrimePart:
                     item = new PrimePart(id);

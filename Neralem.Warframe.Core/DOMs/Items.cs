@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Neralem.Warframe.Core.DOMs
 {
@@ -13,7 +14,30 @@ namespace Neralem.Warframe.Core.DOMs
         public string Name { get; set; }
         public string UrlName { get; set; }
         public int MasteryLevel { get; set; }
+        public Order[] Orders { get; set; }
 
+        public double? AveragePrice
+        {
+            get
+            {
+                if (Orders is null)
+                    return null;
+
+                Order[] orders = Orders
+                    .Where(x => x.OrderType == OrderType.Sell)
+                    .Where(x => x.Visible)
+                    .Where(x => x.User.OnlineStatus is OnlineStatus.Online or OnlineStatus.Ingame)
+                    .OrderBy(x => x.UnitPrice)
+                    .Take(10)
+                    .ToArray();
+
+                if (!orders.Any())
+                    return null;
+
+                return orders.Select(x => x.UnitPrice).Average();
+            }
+        }
+        
         protected Item(string id)
         {
             if (string.IsNullOrWhiteSpace(id))

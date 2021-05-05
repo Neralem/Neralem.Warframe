@@ -228,7 +228,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
             string vaultedRelicsTableLua = tableMatch.Groups[1].Value;
 
-            MatchCollection matches = Regex.Matches(vaultedRelicsTableLua, @"{ Tier = &quot;(\w+)&quot;, Name = &quot;(\w\d+)&quot;,.+?IsVaulted = (0|1)", RegexOptions.Singleline);
+            MatchCollection matches = Regex.Matches(vaultedRelicsTableLua, @"{ Tier = &quot;(\w+)&quot;, Name = &quot;(\w\d+)&quot;,.+? = (0|1)", RegexOptions.Singleline);
             if (!matches.Any())
                 throw new InvalidDataException();
 
@@ -244,21 +244,21 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 if (relic is null)
                     continue;
 
-                if (relic.Drops.Any(x => x.Key.Name.Contains("Glaive")))
+                if (match.Groups[0].Value.Contains("IsBaro = 1"))
+                    relic.IsVaulted = false;
+                else
                 {
-
-                }
-
-                switch (match.Groups[3].Value)
-                {
-                    case "0":
-                        relic.IsVaulted = false;
-                        break;
-                    case "1":
-                        relic.IsVaulted = true;
-                        break;
-                    default:
-                        throw new InvalidDataException();
+                    switch (match.Groups[3].Value)
+                    {
+                        case "0":
+                            relic.IsVaulted = false;
+                            break;
+                        case "1":
+                            relic.IsVaulted = true;
+                            break;
+                        default:
+                            throw new InvalidDataException();
+                    }
                 }
             }
         }

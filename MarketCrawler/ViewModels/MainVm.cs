@@ -70,7 +70,7 @@ namespace MarketCrawler.ViewModels
                         IsDownloadingOrders = true;
 
                         OrderCollection newOrders = new();
-                        Item[] itemsToScanFor = Items.Where(x => x is PrimePart { Ducats: > 15 } or PrimeSet).ToArray();
+                        Item[] itemsToScanFor = Items.Where(x => x is PrimePart or PrimeSet).ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
                         try
@@ -114,6 +114,11 @@ namespace MarketCrawler.ViewModels
                         finally { IsDownloadingOrders = false; }
 
                         Orders = newOrders;
+
+                        foreach (Item item in Items)
+                            item.Orders = Orders.Where(x => x.Item == item).ToArray();
+
+                        FilteredItems = FilterItems();
                     },
                     _ => !IsDownloadingOrders);
             }
@@ -202,6 +207,21 @@ namespace MarketCrawler.ViewModels
                 if (value != items)
                 {
                     items = value;
+                    OnPropertyChanged();
+                    FilteredItems = FilterItems();
+                }
+            }
+        }
+
+        private ItemCollection filteredItems;
+        public ItemCollection FilteredItems
+        {
+            get => filteredItems;
+            set 
+            { 
+                if (value != filteredItems)
+                {
+                    filteredItems = value;
                     OnPropertyChanged();
                 }
             }
@@ -307,5 +327,7 @@ namespace MarketCrawler.ViewModels
 
             return new OrderCollection(filtered.ToArray());
         }
+
+        private ItemCollection FilterItems() => new (Items.Where(x => x is PrimePart));
     }
 }
