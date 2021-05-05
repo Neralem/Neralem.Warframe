@@ -318,6 +318,7 @@ namespace MarketCrawler.ViewModels
 
             IEnumerable<Order> filtered = Orders
                 .Where(x => !x.User.Blocked)
+                .Where(x => x.Visible)
                 .Where(x => x.User.OnlineStatus == OnlineStatus.Ingame)
                 .Where(x => x.OrderType == OrderType.Sell)
                 .Where(x => x.Quantity <= 20);
