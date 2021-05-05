@@ -31,25 +31,36 @@
 
     <TabControl>
         <TabItem Header="Items">
-            <DataGrid ItemsSource="{Binding FilteredItems}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow" Margin="5">
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                        <Setter Property="BorderThickness" Value="0" />
-                    </Style>
-                </DataGrid.CellStyle>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>
-                    <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats, Mode=OneWay}"/>
-                    <DataGridTextColumn Header="Preis" Binding="{Binding AveragePrice, Mode=OneWay, StringFormat=N0}"/>
-                    <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate DataType="{x:Type doMs:Order}">
-                                <CheckBox IsChecked="{Binding IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBox Text="{Binding ItemSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="0"/>
+                <DataGrid ItemsSource="{Binding FilteredItems}" Grid.Row="1"
+                          AutoGenerateColumns="False" EnableRowVirtualization="True"
+                          SelectionMode="Single" SelectionUnit="FullRow" Margin="5">
+                    
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                            <Setter Property="BorderThickness" Value="0" />
+                        </Style>
+                    </DataGrid.CellStyle>
+                    
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>
+                        <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats, Mode=OneWay}"/>
+                        <DataGridTextColumn Header="Preis" Binding="{Binding AveragePrice, Mode=OneWay, StringFormat=N0}"/>
+                        <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="{x:Type doMs:Order}">
+                                    <CheckBox IsChecked="{Binding IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </TabItem>
         <TabItem Header="Orders">
             <Grid Margin="5">
@@ -64,7 +75,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBox Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                <TextBox Text="{Binding OrderSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
 
                 <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
                     <DataGrid.CellStyle>

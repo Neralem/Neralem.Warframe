@@ -208,7 +208,7 @@ namespace MarketCrawler.ViewModels
                 {
                     items = value;
                     OnPropertyChanged();
-                    FilteredItems = FilterItems();
+                    
                 }
             }
         }
@@ -223,6 +223,7 @@ namespace MarketCrawler.ViewModels
                 {
                     filteredItems = value;
                     OnPropertyChanged();
+                    
                 }
             }
         }
@@ -287,21 +288,36 @@ namespace MarketCrawler.ViewModels
         }
 
         private Debouncer SearchDebouncer { get; } = new ();
-        private string searchString = string.Empty;
-        public string SearchString
+        private string orderSearchString = string.Empty;
+        public string OrderSearchString
         {
-            get => searchString;
+            get => orderSearchString;
             set 
             { 
-                if (value != searchString)
+                if (value != orderSearchString)
                 {
-                    searchString = value;
+                    orderSearchString = value;
                     OnPropertyChanged();
                     SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredOrders = FilterOrders());
                 }
             }
         }
 
+        private string itemSearchString = string.Empty;
+        public string ItemSearchString
+        {
+            get => itemSearchString;
+            set
+            {
+                if (value != itemSearchString)
+                {
+                    itemSearchString = value;
+                    OnPropertyChanged();
+                    SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredItems = FilterItems());
+                    
+                }
+            }
+        }
         #endregion
 
         public MainVm()
@@ -323,12 +339,20 @@ namespace MarketCrawler.ViewModels
                 .Where(x => x.OrderType == OrderType.Sell)
                 .Where(x => x.Quantity <= 20);
 
-            if (!string.IsNullOrWhiteSpace(SearchString))
-                filtered = filtered.Where(x => x.Item.Name.Contains(SearchString, StringComparison.InvariantCultureIgnoreCase) || x.User.Name.Contains(SearchString, StringComparison.InvariantCultureIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(OrderSearchString))
+                filtered = filtered.Where(x => x.Item.Name.Contains(OrderSearchString, StringComparison.InvariantCultureIgnoreCase) || x.User.Name.Contains(OrderSearchString, StringComparison.InvariantCultureIgnoreCase));
 
             return new OrderCollection(filtered.ToArray());
         }
 
-        private ItemCollection FilterItems() => new (Items.Where(x => x is PrimePart));
+        private ItemCollection FilterItems()
+        {
+
+            IEnumerable<Item> filtereditems= Items.Where(x => x is PrimePart);
+            
+            if (!string.IsNullOrWhiteSpace(ItemSearchString))
+                filtereditems = filtereditems.Where(x=> x.Name.Contains(ItemSearchString,StringComparison.InvariantCultureIgnoreCase));
+            return new ItemCollection(filtereditems.ToArray());
+        }
     }
 }
