@@ -96,7 +96,15 @@
                         </Style>
                     </DataGrid.CellStyle>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Item.Name, Mode=OneWay}"/>
+                        <DataGridTemplateColumn Header="Name">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="{x:Type doMs:Order}">
+                                    <controls:ExtButton Content="{Binding Item.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
+                                                        MouseDownBrush="Transparent" BorderThickness="0"
+                                                        Padding="5,0,5,0" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.SearchOrderCommand}" CommandParameter="{Binding Item.Name}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
                         <DataGridTextColumn Header="Ducats/Plat" Binding="{Binding DucatsPerPlatinum, Mode=OneWay, StringFormat=N2}"/>
                         <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
@@ -109,7 +117,16 @@
                         <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
                         <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>
                         <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
-                        <DataGridTextColumn Header="User" Binding="{Binding User.Name, Mode=OneWay}"/>
+                        <DataGridTemplateColumn Header="User">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="{x:Type doMs:Order}">
+                                    <controls:ExtButton Content="{Binding User.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
+                                                        MouseDownBrush="Transparent" BorderThickness="0"
+                                                        Padding="5,0,5,0" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.SearchOrderCommand}" CommandParameter="{Binding User.Name}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        
                         <DataGridTextColumn Header="Online Status" Binding="{Binding User.OnlineStatus, Mode=OneWay}"/>
                         <DataGridTemplateColumn CanUserResize="False" CanUserSort="False" IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
@@ -122,6 +139,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
+                        
                     </DataGrid.Columns>
                 </DataGrid>
 

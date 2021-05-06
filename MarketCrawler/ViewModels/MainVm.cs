@@ -159,6 +159,21 @@ namespace MarketCrawler.ViewModels
                     _ => true);
             }
         }
+        private ICommand searchOrderCommand;
+        public ICommand SearchOrderCommand
+        {
+            get
+            {
+                return searchOrderCommand ??= new RelayCommand(
+                     param =>
+                     {
+                         if (param is not string str) return;
+                         OrderSearchString = str;
+                     },
+                    _ => true);
+            }
+        }
+
         private ICommand searchDeleteCommand;
         public ICommand SearchDeleteCommand
         {
