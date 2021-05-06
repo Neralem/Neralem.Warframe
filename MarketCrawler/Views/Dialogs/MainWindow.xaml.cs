@@ -1,5 +1,6 @@
-﻿using System.Linq;
+﻿using MarketCrawler.Properties;
 using MarketCrawler.ViewModels;
+using System.ComponentModel;
 
 namespace Neralem.Warframe.MarketCrawler.Views.Dialogs
 {
@@ -9,6 +10,11 @@ namespace Neralem.Warframe.MarketCrawler.Views.Dialogs
         {
             InitializeComponent();
             DataContext = new MainVm();
+        }
+
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            Settings.Default.Save();
         }
     }
 }
