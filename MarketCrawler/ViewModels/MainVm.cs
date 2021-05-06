@@ -159,7 +159,20 @@ namespace MarketCrawler.ViewModels
                     _ => true);
             }
         }
-
+        private ICommand searchDeleteCommand;
+        public ICommand SearchDeleteCommand
+        {
+            get
+            {
+                return searchDeleteCommand ??= new RelayCommand(
+                     _ =>
+                     {
+                         ItemSearchString = string.Empty;
+                         OrderSearchString = string.Empty;
+                     },
+                    _ => true);
+            }
+        }
         #endregion
 
         private readonly Progress<OrdersUpdateProgress> _ordersUpdateProgress = new();

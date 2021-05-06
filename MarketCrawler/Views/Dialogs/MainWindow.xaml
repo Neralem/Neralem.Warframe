@@ -36,10 +36,17 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBox Text="{Binding ItemSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="0"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding ItemSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="0"/>
+                    <controls:ExtButton Content="Clear Search"  Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right"/>
+                </Grid>
                 <DataGrid ItemsSource="{Binding FilteredItems}" Grid.Row="1"
                           AutoGenerateColumns="False" EnableRowVirtualization="True"
-                          SelectionMode="Single" SelectionUnit="FullRow" Margin="5">
+                          SelectionMode="Single" SelectionUnit="FullRow" >
                     
                     <DataGrid.CellStyle>
                         <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
@@ -74,9 +81,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
-                <TextBox Text="{Binding OrderSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding OrderSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                    <controls:ExtButton Content="Clear Search"  Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right"/>
+                </Grid>
                 <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
                     <DataGrid.CellStyle>
                         <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
