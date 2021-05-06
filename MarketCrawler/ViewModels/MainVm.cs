@@ -235,6 +235,7 @@ namespace MarketCrawler.ViewModels
                 if (value != items)
                 {
                     items = value;
+                    FilteredItems = FilterItems();
                     OnPropertyChanged();
                     
                 }
