@@ -1,0 +1,149 @@
+﻿<UserControl x:Class="MarketCrawler.Views.UserControls.UcInventory"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MarketCrawler.Views.UserControls"
+             xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
+             xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:InventoryVm}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Column="0" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" ItemsSource="{Binding ItemNames}" IsEditable="True" Text="{Binding ItemText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTextSearchEnabled="True"/>
+            <controls:ExtButton Content="Add" Grid.Column="1" Margin="5,0,0,0" Command="{Binding AddEntryCommand}"/>
+        </Grid>
+
+        <TextBlock Grid.Column="0" Grid.Row="1" Text="New" HorizontalAlignment="Center" FontWeight="Bold" FontSize="18"/>
+        <TextBlock Grid.Column="2" Grid.Row="1" Text="Trash" HorizontalAlignment="Center" FontWeight="Bold" FontSize="18"/>
+
+        <DataGrid Grid.Row="2" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" ItemsSource="{Binding NewEntries}" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name" Width="*" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <controls:ExtButton HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left"
+                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding OpenItemInMarketCommand}" Grid.Column="0">
+                                    <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
+                                </controls:ExtButton>
+                                <controls:ExtButton Grid.Column="1" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center" Command="{Binding Inventory.RemoveEntryCommand}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Anzahl" SortMemberPath="Quantity" Width="Auto" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Quantity, Mode=OneWay}" Margin="5,0,0,0"/>
+                                <controls:ExtButton Grid.Column="1" Content="+" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding IncrementQuantityCommand}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center"/>
+                                <controls:ExtButton Grid.Column="2" Content="-" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding DecrementQuantityCommand}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
+                <DataGridTextColumn Header="∅ Preis" Binding="{Binding Item.AveragePrice, Mode=OneWay}"/>
+                <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <CheckBox IsChecked="{Binding Item.IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Width="Auto" CanUserResize="False" CanUserReorder="False" CanUserSort="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <controls:ExtButton Padding="2,0,2,0" HorizontalAlignment="Right" Content="-&gt;" VerticalAlignment="Center" Command="{Binding Inventory.MoveEntryCommand}" CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <DataGrid Grid.Row="2" Grid.Column="2" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" ItemsSource="{Binding TrashEntries}" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="Auto" CanUserResize="False" CanUserReorder="False" CanUserSort="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <controls:ExtButton Padding="2,0,2,0" HorizontalAlignment="Left" Content="&lt;-" VerticalAlignment="Center" Command="{Binding Inventory.MoveEntryCommand}" CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name" Width="*" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <controls:ExtButton HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left"
+                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding OpenItemInMarketCommand}" Grid.Column="0">
+                                    <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
+                                </controls:ExtButton>
+                                <controls:ExtButton Grid.Column="1" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding Inventory.RemoveEntryCommand}" CommandParameter="{Binding}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Anzahl" SortMemberPath="Quantity" Width="Auto" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Quantity, Mode=OneWay}" Margin="5,0,0,0"/>
+                                <controls:ExtButton Grid.Column="1" Content="+" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding IncrementQuantityCommand}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center"/>
+                                <controls:ExtButton Grid.Column="2" Content="-" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding DecrementQuantityCommand}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
+                <DataGridTextColumn Header="∅ Preis" Binding="{Binding Item.AveragePrice, Mode=OneWay}"/>
+                <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <CheckBox IsChecked="{Binding Item.IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace MarketCrawler.ViewModels
 {
-    public class ItemsUpdateProgressViewModel : ViewModelBase
+    public class ItemsUpdateProgressVm : ViewModelBase
     {
         private ICommand cancelUpdateCommand;
         public ICommand CancelUpdateCommand
@@ -33,11 +33,11 @@ namespace MarketCrawler.ViewModels
                 if (value != progress)
                 {
                     progress = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(TotalItemCount));
-                    OnPropertyChanged(nameof(ProgressPercentage));
-                    OnPropertyChanged(nameof(TotalItemsToDownload));
-                    OnPropertyChanged(nameof(TotalItemCount));
+                    NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(TotalItemCount));
+                    NotifyPropertyChanged(nameof(ProgressPercentage));
+                    NotifyPropertyChanged(nameof(TotalItemsToDownload));
+                    NotifyPropertyChanged(nameof(TotalItemCount));
 
                     if (progress.Done)
                         Closeable.CloseIt(null);
@@ -53,7 +53,7 @@ namespace MarketCrawler.ViewModels
         public CancellationTokenSource CancellationTokenSource { get; }
         public ICloseable Closeable { get; init; }
 
-        public ItemsUpdateProgressViewModel(Progress<ItemUpdateProgress> progress, CancellationTokenSource cts)
+        public ItemsUpdateProgressVm(Progress<ItemUpdateProgress> progress, CancellationTokenSource cts)
         {
             CancellationTokenSource = cts;
             progress.ProgressChanged += ProgressOnProgressChanged;

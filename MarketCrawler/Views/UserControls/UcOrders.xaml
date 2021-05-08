@@ -84,7 +84,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <controls:ExtButton Content="/w" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserCommand}" CommandParameter="{Binding}"/>
                                 <controls:ExtButton Content="/w all" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserBuyAllCommand}" CommandParameter="{Binding}"
-                                                            Visibility="{Binding Quantity, Converter={StaticResource ValueIsGreaterThanToVisibilityCollapsedConverter}, ConverterParameter=1}"/>
+                                                    Visibility="{Binding Quantity, Converter={StaticResource ValueIsGreaterThanToVisibilityCollapsedConverter}, ConverterParameter=1}"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

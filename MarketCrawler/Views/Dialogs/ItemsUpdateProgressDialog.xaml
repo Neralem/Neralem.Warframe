@@ -10,7 +10,7 @@
                 xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
                 mc:Ignorable="d" SizeToContent="Height"
                 Title="Suche neue Items..." Width="400" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-                Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:ItemsUpdateProgressViewModel}">
+                Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:ItemsUpdateProgressVm}">
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Closed">
             <b:InvokeCommandAction Command="{Binding Path=CancelUpdateCommand}"/>

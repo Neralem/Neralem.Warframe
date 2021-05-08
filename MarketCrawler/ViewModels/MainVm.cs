@@ -34,7 +34,7 @@ namespace MarketCrawler.ViewModels
                             Progress<ItemUpdateProgress> progress = new();
                             Task<ItemCollection> getItemsTask = ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items, UpdateAllItems);
                             ItemsUpdateProgressDialog updateProgressDialog = new() { Owner = Application.Current.MainWindow };
-                            ItemsUpdateProgressViewModel progressVm = new(progress, updateCtr) { Closeable = updateProgressDialog };
+                            ItemsUpdateProgressVm progressVm = new(progress, updateCtr) { Closeable = updateProgressDialog };
                             updateProgressDialog.DataContext = progressVm;
                             updateProgressDialog.ShowDialog();
                             ItemCollection newItems = await getItemsTask;
@@ -118,6 +118,13 @@ namespace MarketCrawler.ViewModels
                         foreach (Item item in Items)
                             item.Orders = Orders.Where(x => x.Item == item).ToArray();
 
+                        var c = InventoryVm.TrashEntries;
+                        InventoryVm.TrashEntries = null;
+                        InventoryVm.TrashEntries = c;
+                        c = InventoryVm.NewEntries;
+                        InventoryVm.NewEntries = null;
+                        InventoryVm.NewEntries = c;
+
                         FilteredItems = FilterItems();
                     },
                     _ => !IsDownloadingOrders);
@@ -191,9 +198,11 @@ namespace MarketCrawler.ViewModels
         #endregion
 
         private readonly Progress<OrdersUpdateProgress> _ordersUpdateProgress = new();
-        private static string ItemsFilename => "Items.json";
-        private static string UsersFilename => "Users.json";
+        public static string ItemsFilename => "Items.json";
+        public static string UsersFilename => "Users.json";
+        public static string InventoryFilename => "Inventory.json";
         public MarketApiProvider ApiProvider { get; } = new();
+        public InventoryVm InventoryVm { get; }
         public bool UpdateAllItems { get; set; } = false;
 
         #region Binding Properties
@@ -207,7 +216,7 @@ namespace MarketCrawler.ViewModels
                 if (value != title)
                 {
                     title = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -221,7 +230,7 @@ namespace MarketCrawler.ViewModels
                 if (value != ordersUpdateProgress)
                 {
                     ordersUpdateProgress = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -236,7 +245,7 @@ namespace MarketCrawler.ViewModels
                 {
                     items = value;
                     FilteredItems = FilterItems();
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     
                 }
             }
@@ -251,7 +260,7 @@ namespace MarketCrawler.ViewModels
                 if (value != filteredItems)
                 {
                     filteredItems = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     
                 }
             }
@@ -266,7 +275,7 @@ namespace MarketCrawler.ViewModels
                 if (value != filteredOrders)
                 {
                     filteredOrders = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     Title = FilteredOrders is not null && Orders is not null ? $"Market Crawler - {Orders.Count} Orders ({FilteredOrders.Count}) Shown" : "Market Crawler";
                 }
             }
@@ -281,7 +290,7 @@ namespace MarketCrawler.ViewModels
                 if (value != orders)
                 {
                     orders = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     FilteredOrders = FilterOrders();
                     CollectionViewSource.GetDefaultView(FilteredOrders).SortDescriptions.Add(new SortDescription(nameof(Order.DucatsPerPlatinum), ListSortDirection.Descending));
                 }
@@ -297,7 +306,7 @@ namespace MarketCrawler.ViewModels
                 if (value != users)
                 {
                     users = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -311,7 +320,7 @@ namespace MarketCrawler.ViewModels
                 if (value != isDownloadingOrders)
                 {
                     isDownloadingOrders = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -326,7 +335,7 @@ namespace MarketCrawler.ViewModels
                 if (value != orderSearchString)
                 {
                     orderSearchString = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredOrders = FilterOrders());
                 }
             }
@@ -341,7 +350,7 @@ namespace MarketCrawler.ViewModels
                 if (value != itemSearchString)
                 {
                     itemSearchString = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                     SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredItems = FilterItems());
                     
                 }
@@ -353,6 +362,8 @@ namespace MarketCrawler.ViewModels
         {
             Items = File.Exists(ItemsFilename) ? ItemCollection.FromFile(ItemsFilename) : new ItemCollection();
             Users = File.Exists(UsersFilename) ? UserCollection.FromFile(UsersFilename) : new UserCollection();
+            InventoryVm = new InventoryVm(this);
+            InventoryVm.LoadFromFile(InventoryFilename);
             _ordersUpdateProgress.ProgressChanged += (_, progress) => OrdersUpdateProgress = progress;
         }
 
@@ -376,12 +387,11 @@ namespace MarketCrawler.ViewModels
 
         private ItemCollection FilterItems()
         {
-
-            IEnumerable<Item> filtereditems= Items.Where(x => x is PrimePart);
+            IEnumerable<Item> filtered = Items.Where(x => x is PrimePart);
             
             if (!string.IsNullOrWhiteSpace(ItemSearchString))
-                filtereditems = filtereditems.Where(x=> x.Name.Contains(ItemSearchString,StringComparison.InvariantCultureIgnoreCase));
-            return new ItemCollection(filtereditems.ToArray());
+                filtered = filtered.Where(x=> x.Name.Contains(ItemSearchString, StringComparison.InvariantCultureIgnoreCase));
+            return new ItemCollection(filtered.ToArray());
         }
     }
 }

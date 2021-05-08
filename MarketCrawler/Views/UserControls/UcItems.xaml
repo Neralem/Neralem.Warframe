@@ -36,7 +36,7 @@
                 <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Preis" Binding="{Binding AveragePrice, Mode=OneWay, StringFormat=N0}"/>
-                <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
+                <DataGridTemplateColumn Header="Vaulted" SortMemberPath="IsVaulted" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <CheckBox IsChecked="{Binding IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
