@@ -12,9 +12,6 @@ namespace Neralem.Warframe.MarketCrawler.Views.Dialogs
             DataContext = new MainVm();
         }
 
-        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
-        {
-            Settings.Default.Save();
-        }
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e) => Settings.Default.Save();
     }
 }

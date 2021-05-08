@@ -6,10 +6,8 @@
                 xmlns:dialogs="clr-namespace:Neralem.Wpf.UI.Dialogs;assembly=Neralem.Wpf"
                 xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
                 xmlns:p="clr-namespace:MarketCrawler.Properties"
-                xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
-                xmlns:valueConverters="clr-namespace:Neralem.Wpf.ValueConverters;assembly=Neralem.Wpf"
                 xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-                xmlns:doMs="clr-namespace:Neralem.Warframe.Core.DOMs;assembly=Neralem.Warframe.Core"
+                xmlns:userControls="clr-namespace:MarketCrawler.Views.UserControls"
                 mc:Ignorable="d" Title="{Binding Title}"
                 Height="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}" 
                 Width="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowWidth, Mode=TwoWay}" 
@@ -17,17 +15,6 @@
                 Left="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowX, Mode=TwoWay}" 
                 Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:MainVm}"
                 Topmost="{Binding Source={x:Static p:Settings.Default}, Path=TopMost, Mode=TwoWay}" Closing="MainWindow_OnClosing">
-    <dialogs:StylableWindow.Resources>
-        <valueConverters:BoolToVisibilityCollapsedConverter x:Key="BoolToVisibilityCollapsedConverter"/>
-        <valueConverters:ValueConverterGroup x:Key="InvertedBoolToVisibilityCollapsedConverter">
-            <valueConverters:InvertBoolConverter/>
-            <valueConverters:BoolToVisibilityCollapsedConverter/>
-        </valueConverters:ValueConverterGroup>
-        <valueConverters:ValueConverterGroup x:Key="ValueIsGreaterThanToVisibilityCollapsedConverter">
-            <valueConverters:ValueIsGreaterThanToBoolConverter/>
-            <valueConverters:BoolToVisibilityCollapsedConverter/>
-        </valueConverters:ValueConverterGroup>
-    </dialogs:StylableWindow.Resources>
 
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
@@ -38,124 +25,10 @@
     <Grid>
         <TabControl>
             <TabItem Header="Items">
-                <Grid Margin="5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding ItemSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="0"/>
-                        <controls:ExtButton Content="Clear Search"  Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <DataGrid ItemsSource="{Binding FilteredItems}" Grid.Row="1"
-                          AutoGenerateColumns="False" EnableRowVirtualization="True"
-                          SelectionMode="Single" SelectionUnit="FullRow" >
-
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                                <Setter Property="BorderThickness" Value="0" />
-                            </Style>
-                        </DataGrid.CellStyle>
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>
-                            <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats, Mode=OneWay}"/>
-                            <DataGridTextColumn Header="Preis" Binding="{Binding AveragePrice, Mode=OneWay, StringFormat=N0}"/>
-                            <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate DataType="{x:Type doMs:Order}">
-                                        <CheckBox IsChecked="{Binding IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
+                <userControls:UcItems/>
             </TabItem>
             <TabItem Header="Orders">
-                <Grid Margin="5">
-                    <Grid.Resources>
-
-                    </Grid.Resources>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="5"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding OrderSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-                        <controls:ExtButton Content="Clear Search"  Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right"/>
-                    </Grid>
-                    <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                                <Setter Property="BorderThickness" Value="0" />
-                            </Style>
-                        </DataGrid.CellStyle>
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Name">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate DataType="{x:Type doMs:Order}">
-                                        <controls:ExtButton Content="{Binding Item.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
-                                                        MouseDownBrush="Transparent" BorderThickness="0"
-                                                        Padding="5,0,5,0" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.SearchOrderCommand}" CommandParameter="{Binding Item.Name}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Ducats" Binding="{Binding Item.Ducats, Mode=OneWay}"/>
-                            <DataGridTextColumn Header="Ducats/Plat" Binding="{Binding DucatsPerPlatinum, Mode=OneWay, StringFormat=N2}"/>
-                            <DataGridTemplateColumn Header="Vaulted" SortMemberPath="Item.IsVaulted" IsReadOnly="True">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate DataType="{x:Type doMs:Order}">
-                                        <CheckBox IsChecked="{Binding Item.IsVaulted, FallbackValue=False, Mode=OneWay}" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
-                            <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>
-                            <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
-                            <DataGridTemplateColumn Header="User">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate DataType="{x:Type doMs:Order}">
-                                        <controls:ExtButton Content="{Binding User.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
-                                                        MouseDownBrush="Transparent" BorderThickness="0"
-                                                        Padding="5,0,5,0" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.SearchOrderCommand}" CommandParameter="{Binding User.Name}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <DataGridTextColumn Header="Online Status" Binding="{Binding User.OnlineStatus, Mode=OneWay}"/>
-                            <DataGridTemplateColumn CanUserResize="False" CanUserSort="False" IsReadOnly="True">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate DataType="{x:Type doMs:Order}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <controls:ExtButton Content="/w" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserCommand}" CommandParameter="{Binding}"/>
-                                            <controls:ExtButton Content="/w all" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}, Mode=FindAncestor}, Path=DataContext.WhisperUserBuyAllCommand}" CommandParameter="{Binding}"
-                                                            Visibility="{Binding Quantity, Converter={StaticResource ValueIsGreaterThanToVisibilityCollapsedConverter}, ConverterParameter=1}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <Grid Grid.Row="3" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource BoolToVisibilityCollapsedConverter}}">
-                        <ProgressBar Height="20" Minimum="0" Maximum="1" Value="{Binding OrdersUpdateProgress.PercentageDone, Mode=OneWay}"/>
-                        <TextBlock Text="{Binding OrdersUpdateProgress.PercentageDone, StringFormat=p0, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Grid>
-                    <controls:ExtButton Grid.Row="4" Content="Update" HorizontalAlignment="Right" Command="{Binding UpdateOrdersCommand}" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource InvertedBoolToVisibilityCollapsedConverter}}"/>
-                </Grid>
+                <userControls:UcOrders/>
             </TabItem>
         </TabControl>
         <CheckBox Content="Topmost" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"
