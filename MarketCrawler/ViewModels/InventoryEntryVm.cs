@@ -36,7 +36,11 @@ namespace MarketCrawler.ViewModels
             get
             {
                 return incrementQuantityCommand ??= new RelayCommand(
-                    _ => Quantity++,
+                    _ =>
+                    {
+                        Quantity++;
+                        Inventory.SaveToFile(MainVm.InventoryFilename);
+                    },
                     _ => true);
             }
         }
@@ -47,7 +51,11 @@ namespace MarketCrawler.ViewModels
             get
             {
                 return decrementQuantityCommand ??= new RelayCommand(
-                    _ => Quantity--,
+                    _ =>
+                    {
+                        Quantity--;
+                        Inventory.SaveToFile(MainVm.InventoryFilename);
+                    },
                     _ => Quantity > 1);
             }
         }

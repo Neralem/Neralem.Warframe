@@ -27,7 +27,8 @@ namespace Neralem.Warframe.Core.DOMs
                     .Where(x => x.OrderType == OrderType.Sell)
                     .Where(x => x.Visible)
                     .Where(x => x.User.OnlineStatus is OnlineStatus.Online or OnlineStatus.Ingame)
-                    .OrderBy(x => x.UnitPrice)
+                    .OrderByDescending(x => x.User.OnlineStatus)
+                    .ThenBy(x => x.UnitPrice)
                     .Take(10)
                     .ToArray();
 
