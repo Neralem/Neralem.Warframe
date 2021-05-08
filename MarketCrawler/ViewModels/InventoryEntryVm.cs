@@ -8,28 +8,6 @@ namespace MarketCrawler.ViewModels
 {
     public class InventoryEntryVm : ViewModelBase
     {
-        private ICommand openItemInMarketCommand;
-        public ICommand OpenItemInMarketCommand
-        {
-            get
-            {
-                return openItemInMarketCommand ??= new RelayCommand(
-                    _ =>
-                    {
-                        Process myProcess = new()
-                        {
-                            StartInfo =
-                            {
-                                UseShellExecute = true,
-                                FileName = $"https://warframe.market/items/{Item.UrlName}"
-                            }
-                        };
-                        myProcess.Start();
-                    },
-                    _ => true);
-            }
-        }
-
         private ICommand incrementQuantityCommand;
         public ICommand IncrementQuantityCommand
         {
@@ -73,6 +51,8 @@ namespace MarketCrawler.ViewModels
                 {
                     quantity = value;
                     NotifyPropertyChanged();
+                    Inventory.NotifyPropertyChanged(nameof(InventoryVm.TrashItemsDucats));
+                    Inventory.NotifyPropertyChanged(nameof(InventoryVm.NewItemsPlat));
                 }
             }
         }

@@ -33,7 +33,15 @@
             </DataGrid.CellStyle>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>
+                <!--<DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}"/>-->
+                <DataGridTemplateColumn Header="Name" SortMemberPath="Name" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type doMs:Item}">
+                            <controls:ExtButton Content="{Binding Name}" HorizontalContentAlignment="Left" DoubleClickCommand="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}, Path=DataContext.OpenItemInMarketCommand}" DoubleClickCommandParameter="{Binding}"
+                                                Background="Transparent" MouseDownBrush="Transparent" MouseOverBrush="Transparent" BorderThickness="0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Preis" Binding="{Binding AveragePrice, Mode=OneWay, StringFormat=N0}"/>
                 <DataGridTemplateColumn Header="Vaulted" SortMemberPath="IsVaulted" IsReadOnly="True">

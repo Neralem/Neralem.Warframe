@@ -6,8 +6,15 @@
              xmlns:local="clr-namespace:MarketCrawler.Views.UserControls"
              xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
              xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
+             xmlns:valueConverters="clr-namespace:Neralem.Wpf.ValueConverters;assembly=Neralem.Wpf"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:InventoryVm}"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <valueConverters:ValueConverterGroup x:Key="ValueIsGreaterThanToVisibilityConverter">
+            <valueConverters:ValueIsGreaterThanToBoolConverter/>
+            <valueConverters:BoolToVisibilityCollapsedConverter/>
+        </valueConverters:ValueConverterGroup>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -25,12 +32,30 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" ItemsSource="{Binding ItemNames}" IsEditable="True" Text="{Binding ItemText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTextSearchEnabled="True"/>
+            <ComboBox Grid.Column="0" ItemsSource="{Binding ItemNames}" IsEditable="True" Text="{Binding ItemText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTextSearchEnabled="True">
+                <ComboBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding AddEntryCommand}"/>
+                </ComboBox.InputBindings>
+            </ComboBox>
             <controls:ExtButton Content="Add" Grid.Column="1" Margin="5,0,0,0" Command="{Binding AddEntryCommand}"/>
         </Grid>
 
-        <TextBlock Grid.Column="0" Grid.Row="1" Text="New" HorizontalAlignment="Center" FontWeight="Bold" FontSize="18"/>
-        <TextBlock Grid.Column="2" Grid.Row="1" Text="Trash" HorizontalAlignment="Center" FontWeight="Bold" FontSize="18"/>
+        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center">
+            <TextBlock Text="New" FontWeight="Bold" FontSize="18"/>
+            <TextBlock Visibility="{Binding NewItemsPlat, Mode=OneWay, Converter={StaticResource ValueIsGreaterThanToVisibilityConverter}, ConverterParameter=0}">
+                <Run Text=" (" FontWeight="Bold" FontSize="18"/>
+                <Run Text="{Binding NewItemsPlat, Mode=OneWay}" FontWeight="Bold" FontSize="18"/>
+                <Run Text=" Platinum)" FontWeight="Bold" FontSize="18"/>
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center">
+            <TextBlock Text="Trash" FontWeight="Bold" FontSize="18"/>
+            <TextBlock Visibility="{Binding TrashItemsDucats, Mode=OneWay, Converter={StaticResource ValueIsGreaterThanToVisibilityConverter}, ConverterParameter=0}">
+                <Run Text=" (" FontWeight="Bold" FontSize="18"/>
+                <Run Text="{Binding TrashItemsDucats, Mode=OneWay}" FontWeight="Bold" FontSize="18"/>
+                <Run Text=" Ducats)" FontWeight="Bold" FontSize="18"/>
+            </TextBlock>
+        </StackPanel>
 
         <DataGrid Grid.Row="2" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" ItemsSource="{Binding NewEntries}" SelectionMode="Single">
             <DataGrid.Columns>
@@ -43,7 +68,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <controls:ExtButton HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left"
-                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding OpenItemInMarketCommand}" Grid.Column="0">
+                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding Inventory.MainVm.OpenItemInMarketCommand}" DoubleClickCommandParameter="{Binding Item}" Grid.Column="0">
                                     <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
                                 </controls:ExtButton>
                                 <controls:ExtButton Grid.Column="1" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
@@ -107,7 +132,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <controls:ExtButton HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left"
-                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding OpenItemInMarketCommand}" Grid.Column="0">
+                                                    MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding Inventory.MainVm.OpenItemInMarketCommand}" DoubleClickCommandParameter="{Binding Item}" Grid.Column="0">
                                     <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
                                 </controls:ExtButton>
                                 <controls:ExtButton Grid.Column="1" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding Inventory.RemoveEntryCommand}" CommandParameter="{Binding}"

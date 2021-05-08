@@ -5,6 +5,7 @@ using Neralem.Wpf.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,31 @@ namespace MarketCrawler.ViewModels
     public class MainVm : ViewModelBase
     {
         #region Commands
+
+        private ICommand openItemInMarketCommand;
+        public ICommand OpenItemInMarketCommand
+        {
+            get
+            {
+                return openItemInMarketCommand ??= new RelayCommand(
+                    param =>
+                    {
+                        if (param is not Item item)
+                            return;
+
+                        Process myProcess = new()
+                        {
+                            StartInfo =
+                            {
+                                UseShellExecute = true,
+                                FileName = $"https://warframe.market/items/{item.UrlName}"
+                            }
+                        };
+                        myProcess.Start();
+                    },
+                    _ => true);
+            }
+        }
 
         private ICommand updateItemsCommand;
         public ICommand UpdateItemsCommand
@@ -95,10 +121,7 @@ namespace MarketCrawler.ViewModels
                                 }
 #if DEBUG
                                 if (itemsDone >= 10)
-                                {
-
                                     break;
-                                }
 #endif
                                 await Task.Delay(100);
                             }
@@ -246,7 +269,6 @@ namespace MarketCrawler.ViewModels
                     items = value;
                     FilteredItems = FilterItems();
                     NotifyPropertyChanged();
-                    
                 }
             }
         }
@@ -261,7 +283,6 @@ namespace MarketCrawler.ViewModels
                 {
                     filteredItems = value;
                     NotifyPropertyChanged();
-                    
                 }
             }
         }
@@ -352,7 +373,6 @@ namespace MarketCrawler.ViewModels
                     itemSearchString = value;
                     NotifyPropertyChanged();
                     SearchDebouncer.Debounce(TimeSpan.FromMilliseconds(250), _ => FilteredItems = FilterItems());
-                    
                 }
             }
         }

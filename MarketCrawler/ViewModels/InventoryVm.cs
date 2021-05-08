@@ -2,6 +2,7 @@
 using Neralem.Wpf.Mvvm;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -94,7 +95,7 @@ namespace MarketCrawler.ViewModels
 
         public MainVm MainVm { get; }
 
-        private ObservableCollection<InventoryEntryVm> newEntries = new();
+        private ObservableCollection<InventoryEntryVm> newEntries;
         public ObservableCollection<InventoryEntryVm> NewEntries
         {
             get => newEntries;
@@ -102,13 +103,20 @@ namespace MarketCrawler.ViewModels
             { 
                 if (value != newEntries)
                 {
+                    if (newEntries != null)
+                        newEntries.CollectionChanged -=NewEntriesOnCollectionChanged;
                     newEntries = value;
+                    if (newEntries != null)
+                        newEntries.CollectionChanged += NewEntriesOnCollectionChanged;
                     NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(NewItemsPlat));
                 }
             }
         }
 
-        private ObservableCollection<InventoryEntryVm> trashEntries = new();
+        private void NewEntriesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(NewItemsPlat));
+
+        private ObservableCollection<InventoryEntryVm> trashEntries;
         public ObservableCollection<InventoryEntryVm> TrashEntries
         {
             get => trashEntries;
@@ -116,15 +124,32 @@ namespace MarketCrawler.ViewModels
             { 
                 if (value != trashEntries)
                 {
+                    if (trashEntries != null)
+                        trashEntries.CollectionChanged -= TrashEntriesOnCollectionChanged;
                     trashEntries = value;
+                    if (trashEntries != null)
+                        trashEntries.CollectionChanged += TrashEntriesOnCollectionChanged;
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        public InventoryVm(MainVm mainVm) => MainVm = mainVm;
+        private void TrashEntriesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(TrashItemsDucats));
+
+        public InventoryVm(MainVm mainVm)
+        {
+            MainVm = mainVm;
+            NewEntries = new ObservableCollection<InventoryEntryVm>();
+            TrashEntries = new ObservableCollection<InventoryEntryVm>();
+        }
 
         public IEnumerable<string> ItemNames => MainVm.Items.Select(x => x.Name);
+
+        public int NewItemsPlat => NewEntries.Sum(x => (int)(x.Item.AveragePrice ?? 0) * x.Quantity);
+
+        public int TrashItemsDucats =>
+            TrashEntries.Where(x => x.Item is PrimePart).Sum(x => (x.Item as PrimePart)?.Ducats * x.Quantity) +
+            TrashEntries.Where(x => x.Item is PrimeSet).Sum(x => (x.Item as PrimeSet)?.Ducats * x.Quantity) ?? 0;
 
         private string itemText;
         public string ItemText
