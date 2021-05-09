@@ -36,7 +36,7 @@
                 </Style>
             </DataGrid.CellStyle>
             <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Name">
+                <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <controls:ExtButton Content="{Binding Item.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
@@ -57,7 +57,7 @@
                 <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
-                <DataGridTemplateColumn Header="User">
+                <DataGridTemplateColumn Header="User" SortMemberPath="User.Name">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <controls:ExtButton Content="{Binding User.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
