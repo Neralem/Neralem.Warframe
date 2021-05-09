@@ -37,6 +37,13 @@
             <RowDefinition Height="5"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <Popup Grid.Row="0" IsOpen="{Binding PopupVisible}" StaysOpen="True" Placement="Mouse">
+            <Grid Background="{StaticResource Brush.Background.Primary}">
+                <TextBlock Text="{Binding PopupText}" Margin="5"/>
+            </Grid>
+        </Popup>
+
         <TabControl Grid.Row="0">
             <TabItem Header="Items">
                 <userControls:UcItems/>

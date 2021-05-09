@@ -21,7 +21,6 @@ namespace MarketCrawler.ViewModels
                 return addEntryCommand ??= new RelayCommand(
                     param =>
                     {
-
                         if (param is not string itemName || string.IsNullOrWhiteSpace(itemName)) 
                             return;
                         if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet && x.Name.Equals(itemName)) is not Item item)
@@ -33,6 +32,9 @@ namespace MarketCrawler.ViewModels
                             NewEntries.Add(new InventoryEntryVm(this, item));
                                                 
                         ItemText = "";
+
+                        MainVm.PopupText = $"\"{item.Name}\" hinzugefügt";
+                        MainVm.PopupVisible = true;
 
                         SaveToFile(MainVm.InventoryFilename);
                     },

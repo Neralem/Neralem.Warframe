@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Neralem.Wpf;
 
 namespace MarketCrawler.ViewModels
@@ -227,9 +228,9 @@ namespace MarketCrawler.ViewModels
         public MarketApiProvider ApiProvider { get; } = new();
         public InventoryVm InventoryVm { get; }
         public bool UpdateAllItems { get; set; } = false;
+        public Debouncer ToolTipDebouncer { get; } = new();
 
         #region Binding Properties
-      
 
         private string title = "Market Crawler";
         public string Title
@@ -241,6 +242,37 @@ namespace MarketCrawler.ViewModels
                 {
                     title = value;
                     NotifyPropertyChanged();
+                }
+            }
+        }
+
+        private string popupText;
+        public string PopupText
+        {
+            get => popupText;
+            set 
+            { 
+                if (value != popupText)
+                {
+                    popupText = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        private bool popupVisible;
+        public bool PopupVisible
+        {
+            get => popupVisible;
+            set 
+            { 
+                if (value != popupVisible)
+                {
+                    popupVisible = value;
+                    NotifyPropertyChanged();
+
+                    if (value)
+                        ToolTipDebouncer.Debounce(TimeSpan.FromSeconds(2), _ => PopupVisible = false);
                 }
             }
         }
