@@ -114,7 +114,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private void NewEntriesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(NewItemsPlat));
+        private void NewEntriesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(NewItemsPlat));
 
         private ObservableCollection<InventoryEntryVm> trashEntries;
         public ObservableCollection<InventoryEntryVm> TrashEntries
@@ -134,7 +134,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private void TrashEntriesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(TrashItemsDucats));
+        private void TrashEntriesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(TrashItemsDucats));
 
         public InventoryVm(MainVm mainVm)
         {
@@ -145,7 +145,7 @@ namespace MarketCrawler.ViewModels
 
         public IEnumerable<string> ItemNames => MainVm.Items.Select(x => x.Name);
 
-        public int NewItemsPlat => NewEntries.Sum(x => (int)(x.Item.AveragePrice ?? 0) * x.Quantity);
+        public int NewItemsPlat => NewEntries?.Sum(x => (int)(x.Item.AveragePrice ?? 0) * x.Quantity) ?? 0;
 
         public int TrashItemsDucats =>
             TrashEntries.Where(x => x.Item is PrimePart).Sum(x => (x.Item as PrimePart)?.Ducats * x.Quantity) +

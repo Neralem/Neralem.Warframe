@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MarketCrawler.Views.UserControls"
              xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
              xmlns:doMs="clr-namespace:Neralem.Warframe.Core.DOMs;assembly=Neralem.Warframe.Core"
              xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
@@ -11,25 +10,16 @@
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:MainVm}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <valueConverters:ValueConverterGroup x:Key="InvertedBoolToVisibilityCollapsedConverter">
-            <valueConverters:InvertBoolConverter/>
-            <valueConverters:BoolToVisibilityCollapsedConverter/>
-        </valueConverters:ValueConverterGroup>
         <valueConverters:ValueConverterGroup x:Key="ValueIsGreaterThanToVisibilityCollapsedConverter">
             <valueConverters:ValueIsGreaterThanToBoolConverter/>
             <valueConverters:BoolToVisibilityCollapsedConverter/>
         </valueConverters:ValueConverterGroup>
     </UserControl.Resources>
-    <Grid Margin="5">
-        <Grid.Resources>
 
-        </Grid.Resources>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -76,7 +66,6 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-
                 <DataGridTextColumn Header="Online Status" Binding="{Binding User.OnlineStatus, Mode=OneWay}"/>
                 <DataGridTemplateColumn CanUserResize="False" CanUserSort="False" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
@@ -89,14 +78,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-
             </DataGrid.Columns>
         </DataGrid>
-
-        <Grid Grid.Row="3" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource BoolToVisibilityCollapsedConverter}}">
-            <ProgressBar Height="20" Minimum="0" Maximum="1" Value="{Binding OrdersUpdateProgress.PercentageDone, Mode=OneWay}"/>
-            <TextBlock Text="{Binding OrdersUpdateProgress.PercentageDone, StringFormat=p0, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Grid>
-        <controls:ExtButton Grid.Row="4" Content="Update" HorizontalAlignment="Right" Command="{Binding UpdateOrdersCommand}" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource InvertedBoolToVisibilityCollapsedConverter}}"/>
     </Grid>
 </UserControl>
