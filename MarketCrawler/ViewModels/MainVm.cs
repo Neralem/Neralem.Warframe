@@ -229,6 +229,7 @@ namespace MarketCrawler.ViewModels
         public bool UpdateAllItems { get; set; } = false;
 
         #region Binding Properties
+      
 
         private string title = "Market Crawler";
         public string Title

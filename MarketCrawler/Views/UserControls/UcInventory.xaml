@@ -34,10 +34,10 @@
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0" ItemsSource="{Binding ItemNames}" IsEditable="True" Text="{Binding ItemText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsTextSearchEnabled="True">
                 <ComboBox.InputBindings>
-                    <KeyBinding Key="Enter" Command="{Binding AddEntryCommand}"/>
+                    <KeyBinding Key="Enter" Command="{Binding AddEntryCommand}" CommandParameter="{Binding ItemText}"/>
                 </ComboBox.InputBindings>
             </ComboBox>
-            <controls:ExtButton Content="Add" Grid.Column="1" Margin="5,0,0,0" Command="{Binding AddEntryCommand}"/>
+            <controls:ExtButton Content="Add" Grid.Column="1" Margin="5,0,0,0" Command="{Binding AddEntryCommand}" CommandParameter="{Binding ItemText}"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center">

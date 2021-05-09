@@ -19,16 +19,19 @@ namespace MarketCrawler.ViewModels
             get
             {
                 return addEntryCommand ??= new RelayCommand(
-                    _ =>
+                    param =>
                     {
-                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet && x.Name.Equals(ItemText)) is not Item item)
+
+                        if (param is not string itemName || string.IsNullOrWhiteSpace(itemName)) 
+                            return;
+                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet && x.Name.Equals(itemName)) is not Item item)
                             return;
 
                         if (NewEntries.Concat(TrashEntries).FirstOrDefault(x => x.Item.Equals(item)) is InventoryEntryVm entry)
                             entry.Quantity++;
                         else
                             NewEntries.Add(new InventoryEntryVm(this, item));
-
+                                                
                         ItemText = "";
 
                         SaveToFile(MainVm.InventoryFilename);
@@ -36,6 +39,7 @@ namespace MarketCrawler.ViewModels
                     _ => true);
             }
         }
+        
 
         private ICommand removeEntryCommand;
         public ICommand RemoveEntryCommand
