@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
+using Neralem.Warframe.Core.DataAcquisition;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -42,6 +43,28 @@ namespace MarketCrawler.ViewModels
             }
         }
         
+        private ICommand createOrderCommand;
+        public ICommand CreateOrderCommand
+        {
+            get
+            {
+                return createOrderCommand ??= new RelayCommand(
+                    async param =>
+                    {
+                        if (param is not InventoryEntryVm entry)
+                            return;
+
+                        int price = entry.Item.AveragePrice is double p ? (int)p : 0;
+
+                        if (price <= 0)
+                            return;
+
+                        Order newOrder = await ApiProvider.CreateOrderAsync(entry.Item, ApiProvider.CurrentUser, price, entry.Quantity);
+                        MainVm.Orders.Add(newOrder);
+                    },
+                    _ => true);
+            }
+        }
 
         private ICommand removeEntryCommand;
         public ICommand RemoveEntryCommand
@@ -100,6 +123,7 @@ namespace MarketCrawler.ViewModels
         }
 
         public MainVm MainVm { get; }
+        public MarketApiProvider ApiProvider { get; }
 
         private ObservableCollection<InventoryEntryVm> newEntries;
         public ObservableCollection<InventoryEntryVm> NewEntries
@@ -142,9 +166,10 @@ namespace MarketCrawler.ViewModels
 
         private void TrashEntriesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => NotifyPropertyChanged(nameof(TrashItemsDucats));
 
-        public InventoryVm(MainVm mainVm)
+        public InventoryVm(MainVm mainVm, MarketApiProvider apiProvider)
         {
             MainVm = mainVm;
+            ApiProvider = apiProvider;
             NewEntries = new ObservableCollection<InventoryEntryVm>();
             TrashEntries = new ObservableCollection<InventoryEntryVm>();
         }

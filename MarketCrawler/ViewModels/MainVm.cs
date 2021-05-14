@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Neralem.Wpf;
 
 namespace MarketCrawler.ViewModels
@@ -21,6 +20,44 @@ namespace MarketCrawler.ViewModels
     public class MainVm : ViewModelBase
     {
         #region Commands
+
+        private ICommand loginCommand;
+        public ICommand LoginCommand
+        {
+            get
+            {
+                return loginCommand ??= new RelayCommand(
+                    param =>
+                    {
+                        if (param is not Window window)
+                            return;
+
+                        DlgLogin loginDialog = new DlgLogin { Owner = window, DataContext = new LoginVm(ApiProvider) };
+                        loginDialog.ShowDialog();
+
+                        User user = (loginDialog.DataContext as LoginVm)?.User;
+                        if (user is null)
+                            return;
+
+                        if (Users.FirstOrDefault(x => x.Equals(user)) is User knownUser)
+                        {
+                            if (!ReferenceEquals(user, knownUser))
+                            {
+                                ApiProvider.CurrentUser = knownUser;
+                                foreach (Order order in user.Orders)
+                                {
+                                    order.User = knownUser;
+                                    knownUser.Orders.Add(order);
+                                }
+                                user.Orders.Clear();
+                            }
+                        }
+                        else
+                            Users.Add(user);
+                    },
+                    _ => true);
+            }
+        }
 
         private ICommand openItemInMarketCommand;
         public ICommand OpenItemInMarketCommand
@@ -111,7 +148,7 @@ namespace MarketCrawler.ViewModels
                                     ItemsScanned = itemsDone,
                                     TotalItemsToScan = itemsToScanFor.Length
                                 });
-                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemJsonFromApiAsync(item, Users, OnlineStatus.Undefined);
+                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemAsync(item, Users, OnlineStatus.Undefined);
 
                                 if (orderForItem is null)
                                     itemsFailed++;
@@ -415,7 +452,7 @@ namespace MarketCrawler.ViewModels
         {
             Items = File.Exists(ItemsFilename) ? ItemCollection.FromFile(ItemsFilename) : new ItemCollection();
             Users = File.Exists(UsersFilename) ? UserCollection.FromFile(UsersFilename) : new UserCollection();
-            InventoryVm = new InventoryVm(this);
+            InventoryVm = new InventoryVm(this, ApiProvider);
             InventoryVm.LoadFromFile(InventoryFilename);
             _ordersUpdateProgress.ProgressChanged += (_, progress) => OrdersUpdateProgress = progress;
         }

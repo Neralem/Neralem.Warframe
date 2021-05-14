@@ -66,12 +66,15 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <controls:ExtButton HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Left"
                                                     MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding Inventory.MainVm.OpenItemInMarketCommand}" DoubleClickCommandParameter="{Binding Item}" Grid.Column="0">
                                     <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
                                 </controls:ExtButton>
-                                <controls:ExtButton Grid.Column="1" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                                <controls:ExtButton Grid.Column="1" Content="To Market" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center" Command="{Binding Inventory.CreateOrderCommand}" CommandParameter="{Binding}"/>
+                                <controls:ExtButton Grid.Column="2" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
                                                     Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center" Command="{Binding Inventory.RemoveEntryCommand}" CommandParameter="{Binding}"/>
                             </Grid>
                         </DataTemplate>

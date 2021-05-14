@@ -10,13 +10,16 @@
                 xmlns:userControls="clr-namespace:MarketCrawler.Views.UserControls"
                 xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
                 xmlns:valueConverters="clr-namespace:Neralem.Wpf.ValueConverters;assembly=Neralem.Wpf"
-                mc:Ignorable="d" Title="{Binding Title}"
+                mc:Ignorable="d"
+                Title="{Binding Title}"
                 Height="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}" 
                 Width="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowWidth, Mode=TwoWay}" 
                 Top="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowY, Mode=TwoWay}" 
                 Left="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowX, Mode=TwoWay}" 
-                Style="{StaticResource CustomWindowStyle}" d:DataContext="{d:DesignInstance viewModels:MainVm}"
-                Topmost="{Binding Source={x:Static p:Settings.Default}, Path=TopMost, Mode=TwoWay}" Closing="MainWindow_OnClosing" Padding="5">
+                Topmost="{Binding Source={x:Static p:Settings.Default}, Path=TopMost, Mode=TwoWay}"
+                Style="{StaticResource CustomWindowStyle}" 
+                d:DataContext="{d:DesignInstance viewModels:MainVm}"
+                Closing="MainWindow_OnClosing" Padding="5">
 
     <Window.Resources>
         <valueConverters:ValueConverterGroup x:Key="InvertedBoolToVisibilityCollapsedConverter">
@@ -55,8 +58,12 @@
                 <userControls:UcInventory DataContext="{Binding InventoryVm}"/>
             </TabItem>
         </TabControl>
-        <CheckBox Grid.Row="0" Content="Topmost" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"
-                  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}, Path=Topmost}"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <CheckBox Content="Topmost" Margin="0,10,10,0"
+                      IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}, Path=Topmost}"/>
+            <controls:ExtButton Content="Login" Command="{Binding LoginCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type dialogs:StylableWindow}, Mode=FindAncestor}}"/>
+        </StackPanel>
 
         <Grid Grid.Row="2" Visibility="{Binding IsDownloadingOrders, Converter={StaticResource BoolToVisibilityCollapsedConverter}}">
             <ProgressBar Height="20" Minimum="0" Maximum="1" Value="{Binding OrdersUpdateProgress.PercentageDone, Mode=OneWay}"/>

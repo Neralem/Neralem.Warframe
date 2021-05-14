@@ -1,13 +1,18 @@
-﻿using Neralem.Warframe.Core.DataAcquisition.JsonConverter;
+﻿using Neralem.Security;
+using Neralem.Warframe.Core.DataAcquisition.JsonConverter;
 using Neralem.Warframe.Core.DOMs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Security;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,14 +21,58 @@ namespace Neralem.Warframe.Core.DataAcquisition
 {
     public class MarketApiProvider
     {
-        private readonly WebClient client = new();
+        private readonly HttpClient client = new();
         private readonly string baseEndpoint = "https://api.warframe.market/v1/";
+        private string JWT { get; set; }
+        public User CurrentUser { get; set; }
+
+        #region Login
+
+        public async Task<User> TryLoginAsync(string email, SecureString password)
+        {
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{baseEndpoint}auth/signin"),
+                Method = HttpMethod.Post
+            };
+            var content = $"{{ \"email\":\"{email}\",\"password\":\"{Encoding.Default.GetString(password.ToByteArray()).Replace(@"\", @"\\")}\", \"auth_type\": \"header\"}}";
+            request.Content = new StringContent(content, Encoding.UTF8, "application/json");
+            request.Headers.Add("Authorization", "JWT");
+            request.Headers.Add("language", "en");
+            request.Headers.Add("accept", "application/json");
+            request.Headers.Add("platform", "pc");
+            request.Headers.Add("auth_type", "header");
+            var response = await client.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+                return null;
+            string jwt = response.Headers.GetValues("Authorization").FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(jwt))
+                return null;
+            string responseBody = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(responseBody))
+                return null;
+
+            if (JToken.Parse(responseBody)["payload"]?["user"] is not JToken jUser)
+                return null;
+
+            if (jUser["id"]?.ToObject<string>() is not string _id ||
+                jUser["reputation"]?.ToObject<int>() is not int _reputation ||
+                jUser["ingame_name"]?.ToObject<string>() is not string _name)
+                return null;
+
+            JWT = jwt;
+            CurrentUser = new User(_id, _name) { Reputation = _reputation, OnlineStatus = OnlineStatus.Online };
+
+            return CurrentUser;
+        }
+
+        #endregion
 
         #region Items Update
 
-        public async Task<string> GetItemsJsonFromApiAsync() => await client.DownloadStringTaskAsync(baseEndpoint + "items");
+        private async Task<string> GetItemsJsonAsync() => await client.GetStringAsync(baseEndpoint + "items");
 
-        public async Task<string> GetItemDetailsJsonFromApiAsync(string itemUrlName, int maxRetries = 2)
+        private async Task<string> GetItemDetailsJsonAsync(string itemUrlName, int maxRetries = 2)
         {
             int tries = 0;
             bool success = false;
@@ -31,7 +80,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             {
                 try
                 {
-                    string itemDetailJson = await client.DownloadStringTaskAsync(baseEndpoint + "items/" + itemUrlName);
+                    string itemDetailJson = await client.GetStringAsync(baseEndpoint + "items/" + itemUrlName);
                     success = !string.IsNullOrWhiteSpace(itemDetailJson);
                     if (success)
                         return itemDetailJson;
@@ -49,7 +98,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             Dictionary<string, string[]> primeSetPartsTable = new();
             Dictionary<PrimePart, string[]> itemDropRelicTable = new();
 
-            string itemsJson = await GetItemsJsonFromApiAsync();
+            string itemsJson = await GetItemsJsonAsync();
             JObject jObject = JObject.Parse(itemsJson);
             JArray jItems = jObject["payload"]?["items"]?.ToObject<JArray>();
             if (jItems is null || !jItems.Any())
@@ -78,7 +127,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 {
                     if (ct.IsCancellationRequested)
                         throw new TaskCanceledException();
-                    itemJson = await GetItemDetailsJsonFromApiAsync(urlName);
+                    itemJson = await GetItemDetailsJsonAsync(urlName);
                     await Task.Delay(333, ct);
                 }
                 catch (WebException) { Debug.WriteLine($"WebException while receiving {urlName}"); continue; }
@@ -220,7 +269,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             if (!relicsToUpdate.Any())
                 return;
 
-            string vaultedRelicsTableHtml = await client.DownloadStringTaskAsync("https://warframe.fandom.com/wiki/Module:Void/data");
+            string vaultedRelicsTableHtml = await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data");
 
             Match tableMatch = Regex.Match(vaultedRelicsTableHtml, $@"(local VoidData = .+?in ipairs)", RegexOptions.Singleline);
             if (!tableMatch.Success)
@@ -267,14 +316,14 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
         #region Orders
 
-        public async Task<OrderCollection> GetOrdersForItemJsonFromApiAsync(Item item, UserCollection users, OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
+        public async Task<OrderCollection> GetOrdersForItemAsync(Item item, UserCollection users, OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
         {
             const int maxRetries = 2;
             int tries = 0;
             JArray ordersJArray = null;
             while (ordersJArray == null && tries <= maxRetries)
             {
-                try { ordersJArray = JObject.Parse(await client.DownloadStringTaskAsync(baseEndpoint + $"items/{item.UrlName}/orders"))["payload"]?["orders"]?.ToObject<JArray>(); }
+                try { ordersJArray = JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))["payload"]?["orders"]?.ToObject<JArray>(); }
                 catch (WebException) { await Task.Delay(333); tries++; }
             }
 
@@ -343,6 +392,76 @@ namespace Neralem.Warframe.Core.DataAcquisition
             }
 
             return orders;
+        }
+
+        public async Task<Order> CreateOrderAsync(Item item, User user, int platinum, int quantity, OrderType orderType = OrderType.Sell, bool visible = true)
+        {
+            if (string.IsNullOrWhiteSpace(JWT)) throw new AccessViolationException("No JWT provided.");
+            if (item == null) throw new ArgumentNullException(nameof(item));
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            if (platinum <= 0) throw new ArgumentOutOfRangeException(nameof(platinum));
+            if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
+            if (!Enum.IsDefined(typeof(OrderType), orderType))
+                throw new InvalidEnumArgumentException(nameof(orderType), (int) orderType, typeof(OrderType));
+            if (orderType == OrderType.Undefined) throw new InvalidDataException();
+
+            dynamic payload = new
+            {
+                item_id = item.Id,
+                order_type = orderType == OrderType.Sell ? "sell" : "buy",
+                platinum,
+                quantity,
+                visible,
+            };
+
+            string body = JsonConvert.SerializeObject(payload);
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{baseEndpoint}profile/orders"),
+                Method = HttpMethod.Post,
+                Content = new StringContent(body, Encoding.UTF8, "application/json")
+            };
+
+            request.Headers.Add("Authorization", JWT);
+            request.Headers.Add("language", "en");
+            request.Headers.Add("accept", "application/json");
+            request.Headers.Add("platform", "pc");
+            request.Headers.Add("auth_type", "header");
+
+            var response = await client.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                return null;
+
+            JsonSerializer serializer = new() { Converters = { new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter() } };
+            JToken jsonOrder = JToken.Parse(responseBody)["payload"]?["order"];
+
+            if (jsonOrder?["id"]?.ToObject<string>() is not string _id ||
+                jsonOrder["quantity"]?.ToObject<int>() is not int _quantity ||
+                jsonOrder["platinum"]?.ToObject<int>() is not int _price ||
+                jsonOrder["visible"]?.ToObject<bool>() is not bool _visible ||
+                jsonOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType _orderType || _orderType == OrderType.Undefined ||
+                jsonOrder["creation_date"]?.ToObject<DateTime>() is not DateTime _creationDate ||
+                jsonOrder["last_update"]?.ToObject<DateTime>() is not DateTime _modifiedDate)
+                return null;
+
+            Order newOrder = new(_id)
+            {
+                Item = item,
+                User = user,
+                Visible = _visible,
+                Quantity = _quantity,
+                UnitPrice = _price,
+                OrderType = _orderType,
+                CreationDate = _creationDate,
+                ModificationDate = _modifiedDate
+            };
+
+            user.Orders.Add(newOrder);
+
+            return newOrder;
         }
 
         #endregion

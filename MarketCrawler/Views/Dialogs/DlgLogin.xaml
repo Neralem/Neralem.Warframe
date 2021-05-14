@@ -1,0 +1,46 @@
+﻿<dialogs:StylableWindow x:Class="MarketCrawler.Views.Dialogs.DlgLogin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
+        xmlns:dialogs="clr-namespace:Neralem.Wpf.UI.Dialogs;assembly=Neralem.Wpf"
+        xmlns:wpfDesign="clr-namespace:Neralem.Wpf;assembly=Neralem.Wpf"
+        xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d" Style="{StaticResource CustomWindowStyle}"
+        Background="{DynamicResource Brush.Background.Primary}"
+        SizeToContent="Height"
+        Title="DlgLogin" Width="250" ResizeMode="NoResize"
+        d:DataContext="{d:DesignInstance viewModels:LoginVm}">
+    <dialogs:StylableWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <wpfDesign:DesignTimeResourceDictionary DesignTimeSource="pack://application:,,,/Neralem.Wpf;component/UI/Themes/SharedStyles.xaml"/>
+                <wpfDesign:DesignTimeResourceDictionary DesignTimeSource="pack://application:,,,/Neralem.Wpf;component/ValueConverters/ConvertersResourceDictionary.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </dialogs:StylableWindow.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <controls:ExtTextBox Grid.Row="0" PlaceholderText="Email" CornerRadius="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight, Converter={StaticResource HeightToCornerRadiusConverter}}"
+                             Padding="5" DeleteButtonVisible="True" Text="{Binding EmailAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <controls:ExtPasswordBox Grid.Row="1" PlaceholderText="Passwort" PlaceholderAlwaysVisible="False" Margin="0,5,0,0" SecuredPassword="{Binding Password, Mode=TwoWay}"/>
+        <Grid Grid.Row="2" Margin="0,5,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <controls:ExtButton Grid.Column="0" Content="Login" HorizontalAlignment="Left" Padding="20,5,20,5" IsDefault="True" Command="{Binding TryLoginCommand}"
+                                CornerRadius="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight, Converter={StaticResource HeightToCornerRadiusConverter}}"/>
+            <TextBlock Grid.Column="1" Text="Daten speichern" Margin="0,0,10,0" VerticalAlignment="Center"/>
+            <controls:ExtToggleButton Grid.Column="2" Style="{DynamicResource SwitchButtonStyle}" IsChecked="{Binding SaveUserData, Mode=TwoWay}"/>
+        </Grid>
+    </Grid>
+</dialogs:StylableWindow>
