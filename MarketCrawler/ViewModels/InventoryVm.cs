@@ -9,6 +9,9 @@ using System.Windows.Input;
 using Neralem.Warframe.Core.DataAcquisition;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using Neralem.Wpf.UI.Dialogs;
+using System.Windows;
 
 namespace MarketCrawler.ViewModels
 {
@@ -58,11 +61,23 @@ namespace MarketCrawler.ViewModels
 
                         if (price <= 0)
                             return;
+                        try
+                        {
+                            Order newOrder = await ApiProvider.CreateOrderAsync(entry.Item, ApiProvider.CurrentUser, price, entry.Quantity);
+                            if(newOrder != null)
+                            {
+                                MainVm.Orders.Add(newOrder);
+                                MainVm.PopupText = "Order erfolgreich erstellt";
+                                MainVm.PopupVisible = true;
+                            }
 
-                        Order newOrder = await ApiProvider.CreateOrderAsync(entry.Item, ApiProvider.CurrentUser, price, entry.Quantity);
-                        MainVm.Orders.Add(newOrder);
+                        }   
+                        catch(AccessViolationException e)
+                        {
+                            ExtMessageBox.Show("Fehler", e.Message,MessageBoxButton.OK,MessageBoxImage.Error);
+                        }
                     },
-                    _ => true);
+                    _ => ApiProvider.CurrentUser != null);
             }
         }
 

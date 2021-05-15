@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.UI.Dialogs;
+using Neralem.Wpf.Mvvm.Interfaces;
 
 namespace MarketCrawler.ViewModels
 {
@@ -21,7 +22,7 @@ namespace MarketCrawler.ViewModels
             get
             {
                 return tryLoginCommand ??= new RelayCommand(
-                    async _ =>
+                    async param =>
                     {
                         if (ApiProvider is null)
                             return;
@@ -32,6 +33,8 @@ namespace MarketCrawler.ViewModels
 
                             if (SaveUserData)
                                 SaveLoginData();
+                            (param as ICloseable)?.CloseIt(null);
+                            
                         }
                         else
                             ExtMessageBox.Show("Fehler", "Fehler beim Login!", MessageBoxButton.OK, MessageBoxImage.Error);

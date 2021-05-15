@@ -447,7 +447,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             if (!Enum.IsDefined(typeof(OrderType), orderType))
                 throw new InvalidEnumArgumentException(nameof(orderType), (int) orderType, typeof(OrderType));
             if (orderType == OrderType.Undefined) throw new InvalidDataException();
-
+            
             dynamic payload = new
             {
                 item_id = item.Id,
@@ -478,7 +478,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
             if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
                 return null;
-
+            
             JsonSerializer serializer = new()
                 {Converters = {new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter()}};
             JToken jsonOrder = JToken.Parse(responseBody)["payload"]?["order"];
