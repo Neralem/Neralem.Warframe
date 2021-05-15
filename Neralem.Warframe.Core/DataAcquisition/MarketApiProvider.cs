@@ -21,10 +21,15 @@ namespace Neralem.Warframe.Core.DataAcquisition
 {
     public class MarketApiProvider
     {
-        private readonly HttpClient client = new();
+        private readonly HttpClient client;
         private readonly string baseEndpoint = "https://api.warframe.market/v1/";
         private string JWT { get; set; }
         public User CurrentUser { get; set; }
+
+        public MarketApiProvider()
+        {
+            client = new HttpClient(new HttpClientHandler { UseCookies = false });
+        }
 
         #region Login
 
@@ -35,7 +40,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 RequestUri = new Uri($"{baseEndpoint}auth/signin"),
                 Method = HttpMethod.Post
             };
-            var content = $"{{ \"email\":\"{email}\",\"password\":\"{Encoding.Default.GetString(password.ToByteArray()).Replace(@"\", @"\\")}\", \"auth_type\": \"header\"}}";
+            var content =
+                $"{{ \"email\":\"{email}\",\"password\":\"{Encoding.Default.GetString(password.ToByteArray()).Replace(@"\", @"\\")}\", \"auth_type\": \"header\"}}";
             request.Content = new StringContent(content, Encoding.UTF8, "application/json");
             request.Headers.Add("Authorization", "JWT");
             request.Headers.Add("language", "en");
@@ -45,7 +51,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
                 return null;
-            string jwt = response.Headers.GetValues("Authorization").FirstOrDefault();
+            string jwt = response.Headers.GetValues("Authorization").FirstOrDefault()?.Substring(4);
             if (string.IsNullOrWhiteSpace(jwt))
                 return null;
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -61,7 +67,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 return null;
 
             JWT = jwt;
-            CurrentUser = new User(_id, _name) { Reputation = _reputation, OnlineStatus = OnlineStatus.Online };
+            CurrentUser = new User(_id, _name) {Reputation = _reputation, OnlineStatus = OnlineStatus.Online};
 
             return CurrentUser;
         }
@@ -85,16 +91,21 @@ namespace Neralem.Warframe.Core.DataAcquisition
                     if (success)
                         return itemDetailJson;
                 }
-                catch (WebException) { await Task.Delay(333); tries++; }
+                catch (WebException)
+                {
+                    await Task.Delay(333);
+                    tries++;
+                }
             }
 
             throw new WebException();
         }
 
-        public async Task<ItemCollection> GetItemCatalogFromApiAsync(IProgress<ItemUpdateProgress> progress, CancellationToken ct, ItemCollection existingItems = null, bool updateExisting = true)
+        public async Task<ItemCollection> GetItemCatalogFromApiAsync(IProgress<ItemUpdateProgress> progress,
+            CancellationToken ct, ItemCollection existingItems = null, bool updateExisting = true)
         {
             ItemCollection items = new();
-            JsonSerializer itemJsonSerializer = new() { Converters = { new ApiItemJsonConverter() } };
+            JsonSerializer itemJsonSerializer = new() {Converters = {new ApiItemJsonConverter()}};
             Dictionary<string, string[]> primeSetPartsTable = new();
             Dictionary<PrimePart, string[]> itemDropRelicTable = new();
 
@@ -130,7 +141,12 @@ namespace Neralem.Warframe.Core.DataAcquisition
                     itemJson = await GetItemDetailsJsonAsync(urlName);
                     await Task.Delay(333, ct);
                 }
-                catch (WebException) { Debug.WriteLine($"WebException while receiving {urlName}"); continue; }
+                catch (WebException)
+                {
+                    Debug.WriteLine($"WebException while receiving {urlName}");
+                    continue;
+                }
+
                 jObject = JObject.Parse(itemJson);
                 jItems = jObject["payload"]?["item"]?["items_in_set"]?.ToObject<JArray>();
                 string[] setPartIds = jItems.Select(x => x["id"].ToObject<string>()).ToArray();
@@ -161,17 +177,18 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
                     progress.Report(new ItemUpdateProgress
                     {
-                        CurrentItemUrlName = urlName, 
-                        ItemsFailed = failedCount, 
-                        PrimePartCount = primePartCount, 
-                        PrimeSetCount =  primeSetCount, 
+                        CurrentItemUrlName = urlName,
+                        ItemsFailed = failedCount,
+                        PrimePartCount = primePartCount,
+                        PrimeSetCount = primeSetCount,
                         RelicCount = relicCount,
                         ItemsLeft = itemsIds.Length - failedCount - primePartCount - primeSetCount - relicCount
                     });
                 }
 
             }
-            progress.Report(new ItemUpdateProgress { Done = true });
+
+            progress.Report(new ItemUpdateProgress {Done = true});
 
             FixRelicNames(items.OfType<Relic>());
             SetupRelicDropTable(items, itemDropRelicTable);
@@ -204,7 +221,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 .ToArray();
         }
 
-        private static void SetupRelicDropTable(ItemCollection items, Dictionary<PrimePart, string[]> primePartDropTables)
+        private static void SetupRelicDropTable(ItemCollection items,
+            Dictionary<PrimePart, string[]> primePartDropTables)
         {
             Relic[] relics = items.OfType<Relic>().ToArray();
 
@@ -212,7 +230,9 @@ namespace Neralem.Warframe.Core.DataAcquisition
             {
                 foreach (string relicNameDrop in primePartDropTable)
                 {
-                    Match match = Regex.Match(relicNameDrop.Trim(), @"^((?:(?:Lith)|(?:Meso)|(?:Neo)|(?:Axi))\s\w\d+)\sRelic\s\(((?:Common)|(?:Uncommon)|(?:Rare))\)$", RegexOptions.IgnoreCase);
+                    Match match = Regex.Match(relicNameDrop.Trim(),
+                        @"^((?:(?:Lith)|(?:Meso)|(?:Neo)|(?:Axi))\s\w\d+)\sRelic\s\(((?:Common)|(?:Uncommon)|(?:Rare))\)$",
+                        RegexOptions.IgnoreCase);
                     if (!match.Success)
                     {
                         Debug.WriteLine($"Failed to Regex relic {relicNameDrop}");
@@ -263,21 +283,24 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
         public async Task SetVaultedRelics(Relic[] relicsToUpdate)
         {
-            if (relicsToUpdate is null) 
+            if (relicsToUpdate is null)
                 throw new ArgumentNullException(nameof(relicsToUpdate));
 
             if (!relicsToUpdate.Any())
                 return;
 
-            string vaultedRelicsTableHtml = await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data");
+            string vaultedRelicsTableHtml =
+                await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data");
 
-            Match tableMatch = Regex.Match(vaultedRelicsTableHtml, $@"(local VoidData = .+?in ipairs)", RegexOptions.Singleline);
+            Match tableMatch = Regex.Match(vaultedRelicsTableHtml, $@"(local VoidData = .+?in ipairs)",
+                RegexOptions.Singleline);
             if (!tableMatch.Success)
                 throw new InvalidDataException();
 
             string vaultedRelicsTableLua = tableMatch.Groups[1].Value;
 
-            MatchCollection matches = Regex.Matches(vaultedRelicsTableLua, @"{ Tier = &quot;(\w+)&quot;, Name = &quot;(\w\d+)&quot;,.+? = (0|1)", RegexOptions.Singleline);
+            MatchCollection matches = Regex.Matches(vaultedRelicsTableLua,
+                @"{ Tier = &quot;(\w+)&quot;, Name = &quot;(\w\d+)&quot;,.+? = (0|1)", RegexOptions.Singleline);
             if (!matches.Any())
                 throw new InvalidDataException();
 
@@ -288,7 +311,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
                 string relicName = $"{match.Groups[1].Value} {match.Groups[2].Value}";
 
-                Relic relic = relicsToUpdate.FirstOrDefault(x => x.Name.Equals(relicName, StringComparison.InvariantCultureIgnoreCase));
+                Relic relic = relicsToUpdate.FirstOrDefault(x =>
+                    x.Name.Equals(relicName, StringComparison.InvariantCultureIgnoreCase));
 
                 if (relic is null)
                     continue;
@@ -316,28 +340,45 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
         #region Orders
 
-        public async Task<OrderCollection> GetOrdersForItemAsync(Item item, UserCollection users, OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
+        public async Task<OrderCollection> GetOrdersForItemAsync(Item item, UserCollection users,
+            OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
         {
             const int maxRetries = 2;
             int tries = 0;
             JArray ordersJArray = null;
             while (ordersJArray == null && tries <= maxRetries)
             {
-                try { ordersJArray = JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))["payload"]?["orders"]?.ToObject<JArray>(); }
-                catch (WebException) { await Task.Delay(333); tries++; }
+                try
+                {
+                    ordersJArray =
+                        JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))
+                            ["payload"]?["orders"]?.ToObject<JArray>();
+                }
+                catch (WebException)
+                {
+                    await Task.Delay(333);
+                    tries++;
+                }
             }
 
             if (ordersJArray is null)
                 return null;
 
             OrderCollection orders = new();
-            JsonSerializer serializer = new() { Converters = { new ApiUserJsonConverter(), new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter() } };
+            JsonSerializer serializer = new()
+            {
+                Converters =
+                {
+                    new ApiUserJsonConverter(), new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter()
+                }
+            };
 
             foreach (JToken jOrder in ordersJArray)
             {
                 string id = jOrder["id"]?.ToObject<string>();
                 string userId = jOrder["user"]?["id"]?.ToObject<string>();
-                if (jOrder["user"]?["status"]?.ToObject<OnlineStatus>(serializer) is not OnlineStatus onlineStatus || onlineStatus == OnlineStatus.Undefined)
+                if (jOrder["user"]?["status"]?.ToObject<OnlineStatus>(serializer) is not OnlineStatus onlineStatus ||
+                    onlineStatus == OnlineStatus.Undefined)
                     continue;
                 if (onlineStatus < minUserOnlineStatus)
                     continue;
@@ -353,6 +394,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                         Debug.WriteLine($"Failed to parse User with id: {userId}");
                         continue;
                     }
+
                     users.Add(user);
                 }
                 else // Update the User
@@ -371,14 +413,15 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 if (jOrder["quantity"]?.ToObject<int>() is not int quantity ||
                     jOrder["platinum"]?.ToObject<int>() is not int price ||
                     jOrder["visible"]?.ToObject<bool>() is not bool visible ||
-                    jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType || orderType == OrderType.Undefined ||
+                    jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType ||
+                    orderType == OrderType.Undefined ||
                     jOrder["creation_date"]?.ToObject<DateTime>() is not DateTime creationDate ||
                     jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate)
                     continue;
 
                 Order order = new(id)
                 {
-                    Item = item, 
+                    Item = item,
                     User = user,
                     Visible = visible,
                     Quantity = quantity,
@@ -423,11 +466,12 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
 
-            request.Headers.Add("Authorization", JWT);
+            request.Headers.Add("Authorization", "JWT " + JWT);
             request.Headers.Add("language", "en");
             request.Headers.Add("accept", "application/json");
             request.Headers.Add("platform", "pc");
             request.Headers.Add("auth_type", "header");
+            request.Headers.Remove("Cookie");
 
             var response = await client.SendAsync(request);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -435,7 +479,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
             if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
                 return null;
 
-            JsonSerializer serializer = new() { Converters = { new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter() } };
+            JsonSerializer serializer = new()
+                {Converters = {new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter()}};
             JToken jsonOrder = JToken.Parse(responseBody)["payload"]?["order"];
 
             if (jsonOrder?["id"]?.ToObject<string>() is not string _id ||
