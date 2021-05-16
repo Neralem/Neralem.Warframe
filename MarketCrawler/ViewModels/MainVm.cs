@@ -157,10 +157,10 @@ namespace MarketCrawler.ViewModels
                                     newOrders.AddRange(orderForItem);
                                     itemsDone++;
                                 }
-//#if DEBUG
+#if DEBUG
                                 if (itemsDone >= 10)
                                     break;
-//#endif
+#endif
                                 await Task.Delay(100);
                             }
 

@@ -37,7 +37,9 @@ namespace MarketCrawler.ViewModels
                             
                         }
                         else
-                            ExtMessageBox.Show("Fehler", "Fehler beim Login!", MessageBoxButton.OK, MessageBoxImage.Error);
+                        {
+                            ExtMessageBox.Show("Fehler", "Fehler beim Login!", MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
+                        }
                     },
                     _ => (Password?.Length ?? 0) > 0 && !string.IsNullOrWhiteSpace(EmailAddress));
             }
@@ -81,6 +83,9 @@ namespace MarketCrawler.ViewModels
                 {
                     saveUserData = value;
                     NotifyPropertyChanged();
+
+                    if (!SaveUserData && File.Exists(UserDataFilename))
+                        File.Delete(UserDataFilename);
                 }
             }
         }
