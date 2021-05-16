@@ -41,9 +41,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Popup Grid.Row="0" IsOpen="{Binding PopupVisible}" StaysOpen="True" Placement="Mouse">
+        <Popup Grid.Row="0" IsOpen="{Binding PopupVisible}" StaysOpen="True" PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window},Mode=FindAncestor}}"
+               Placement="RelativePoint" VerticalOffset="{Binding Source={x:Static p:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}"
+               HorizontalOffset="200">
             <Grid Background="{StaticResource Brush.Background.Primary}">
-                <TextBlock Text="{Binding PopupText}" Margin="5"/>
+                <Border Padding="50">
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding PopupText}" Margin="5"/>
+                </Border>
             </Grid>
         </Popup>
 

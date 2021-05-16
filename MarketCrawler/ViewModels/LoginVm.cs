@@ -35,6 +35,8 @@ namespace MarketCrawler.ViewModels
                                 SaveLoginData();
                             (param as ICloseable)?.CloseIt(null);
                             OrderCollection myOrders = await ApiProvider.GetOwnOrdersAsync(MainVm.Items);
+                            MainVm.PopupText = "LogIn erfolgreich";
+                            MainVm.PopupVisible = true;
                         }
                         else
                         {
