@@ -32,7 +32,7 @@ namespace MarketCrawler.ViewModels
                         if (param is not Window window)
                             return;
 
-                        DlgLogin loginDialog = new DlgLogin { Owner = window, DataContext = new LoginVm(ApiProvider) };
+                        DlgLogin loginDialog = new DlgLogin { Owner = window, DataContext = new LoginVm(ApiProvider, this) };
                         loginDialog.ShowDialog();
 
                         User user = (loginDialog.DataContext as LoginVm)?.User;
@@ -148,7 +148,7 @@ namespace MarketCrawler.ViewModels
                                     ItemsScanned = itemsDone,
                                     TotalItemsToScan = itemsToScanFor.Length
                                 });
-                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemAsync(item, Users, OnlineStatus.Undefined);
+                                OrderCollection orderForItem = await ApiProvider.GetOrdersForItemAsync(item, Users);
 
                                 if (orderForItem is null)
                                     itemsFailed++;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Windows.Input;
 using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
@@ -53,6 +52,20 @@ namespace MarketCrawler.ViewModels
                     NotifyPropertyChanged();
                     Inventory.NotifyPropertyChanged(nameof(InventoryVm.TrashItemsDucats));
                     Inventory.NotifyPropertyChanged(nameof(InventoryVm.NewItemsPlat));
+                }
+            }
+        }
+
+        private bool isChecked;
+        public bool IsChecked
+        {
+            get => isChecked;
+            set 
+            { 
+                if (value != isChecked)
+                {
+                    isChecked = value;
+                    NotifyPropertyChanged();
                 }
             }
         }

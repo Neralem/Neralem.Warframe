@@ -37,7 +37,8 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <controls:ExtButton Grid.Column="0" Content="Login" HorizontalAlignment="Left" Padding="20,5,20,5" IsDefault="True" Command="{Binding TryLoginCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window},Mode=FindAncestor}}"
+            <controls:ExtButton Grid.Column="0" Content="Login" HorizontalAlignment="Left" Padding="20,5,20,5" IsDefault="True"
+                                Command="{Binding TryLoginCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window},Mode=FindAncestor}}"
                                 CornerRadius="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight, Converter={StaticResource HeightToCornerRadiusConverter}}"/>
             <TextBlock Grid.Column="1" Text="Daten speichern" Margin="0,0,10,0" VerticalAlignment="Center"/>
             <controls:ExtToggleButton Grid.Column="2" Style="{DynamicResource SwitchButtonStyle}" IsChecked="{Binding SaveUserData, Mode=TwoWay}"/>

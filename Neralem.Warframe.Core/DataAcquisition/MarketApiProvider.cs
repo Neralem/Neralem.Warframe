@@ -22,13 +22,22 @@ namespace Neralem.Warframe.Core.DataAcquisition
     public class MarketApiProvider
     {
         private readonly HttpClient client;
-        private readonly string baseEndpoint = "https://api.warframe.market/v1/";
+        private const string baseEndpoint = "https://api.warframe.market/v1/";
         private string JWT { get; set; }
         public User CurrentUser { get; set; }
 
-        public MarketApiProvider()
+        public MarketApiProvider() => client = new HttpClient(new HttpClientHandler { UseCookies = false });
+
+        private void FillRequestHeaders(HttpRequestMessage request)
         {
-            client = new HttpClient(new HttpClientHandler { UseCookies = false });
+            if (!string.IsNullOrWhiteSpace(JWT))
+            {
+                request.Headers.Add("Authorization", "JWT " + JWT);
+                request.Headers.Add("auth_type", "header");
+            }
+            request.Headers.Add("language", "en");
+            request.Headers.Add("accept", "application/json");
+            request.Headers.Add("platform", "pc");
         }
 
         #region Login
@@ -340,8 +349,58 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
         #region Orders
 
-        public async Task<OrderCollection> GetOrdersForItemAsync(Item item, UserCollection users,
-            OnlineStatus minUserOnlineStatus = OnlineStatus.Ingame)
+        private static Order GetOrderFromJObject(JObject jOrder, UserCollection users, ItemCollection items)
+        {
+            JsonSerializer serializer = new() { Converters = { new ApiUserJsonConverter(), new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter() } };
+
+            string orderId = jOrder["id"]?.ToObject<string>();
+            string itemId = jOrder["item"]?["id"]?.ToObject<string>() ?? items.Single().Id;
+            if (string.IsNullOrWhiteSpace(orderId) || string.IsNullOrWhiteSpace(itemId) || items.FirstOrDefault(x => x.Id.Equals(itemId)) is not Item item)
+                return null;
+
+            User parsedUser = jOrder["user"] is not JToken jUser ? null : jUser.ToObject<User>(serializer);
+            User existingUser = users.FirstOrDefault(x => x.Equals(parsedUser));
+
+            if (parsedUser is null && existingUser is null)
+                existingUser = users.Single();
+
+            if (existingUser is null) // Create the User and add to users
+                users.Add(parsedUser);
+            else if (parsedUser is not null) // Update the User
+            {
+                existingUser.Name = parsedUser.Name;
+                existingUser.LastSeen = parsedUser.LastSeen;
+                existingUser.Reputation = parsedUser.Reputation;
+                existingUser.OnlineStatus = parsedUser.OnlineStatus;
+            }
+
+            User user = existingUser ?? parsedUser;
+
+            if (jOrder["quantity"]?.ToObject<int>() is not int quantity ||
+                jOrder["platinum"]?.ToObject<int>() is not int price ||
+                jOrder["visible"]?.ToObject<bool>() is not bool visible ||
+                jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType ||
+                orderType == OrderType.Undefined ||
+                jOrder["creation_date"]?.ToObject<DateTime>() is not DateTime creationDate ||
+                jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate)
+                return null;
+
+            Order order = new(orderId)
+            {
+                Item = item,
+                User = user,
+                Visible = visible,
+                Quantity = quantity,
+                UnitPrice = price,
+                OrderType = orderType,
+                CreationDate = creationDate,
+                ModificationDate = modifiedDate
+            };
+
+            return order;
+        }
+
+        public async Task<OrderCollection> GetOrdersForItemAsync(Item item, UserCollection users)
         {
             const int maxRetries = 2;
             int tries = 0;
@@ -350,9 +409,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             {
                 try
                 {
-                    ordersJArray =
-                        JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))
-                            ["payload"]?["orders"]?.ToObject<JArray>();
+                    ordersJArray = JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))["payload"]?["orders"]?.ToObject<JArray>();
                 }
                 catch (WebException)
                 {
@@ -365,83 +422,20 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 return null;
 
             OrderCollection orders = new();
-            JsonSerializer serializer = new()
-            {
-                Converters =
-                {
-                    new ApiUserJsonConverter(), new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter()
-                }
-            };
 
             foreach (JToken jOrder in ordersJArray)
             {
-                string id = jOrder["id"]?.ToObject<string>();
-                string userId = jOrder["user"]?["id"]?.ToObject<string>();
-                if (jOrder["user"]?["status"]?.ToObject<OnlineStatus>(serializer) is not OnlineStatus onlineStatus ||
-                    onlineStatus == OnlineStatus.Undefined)
-                    continue;
-                if (onlineStatus < minUserOnlineStatus)
-                    continue;
-                if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(userId))
-                    continue;
-
-                User user = users.FirstOrDefault(x => x.Id.Equals(userId));
-                if (user is null) // Create the User and add to users
-                {
-                    user = jOrder["user"].ToObject<User>(serializer);
-                    if (user is null)
-                    {
-                        Debug.WriteLine($"Failed to parse User with id: {userId}");
-                        continue;
-                    }
-
-                    users.Add(user);
-                }
-                else // Update the User
-                {
-                    User tempUser = user = jOrder["user"].ToObject<User>(serializer);
-
-                    if (tempUser is null)
-                        continue;
-
-                    user.Name = tempUser.Name;
-                    user.LastSeen = tempUser.LastSeen;
-                    user.Reputation = tempUser.Reputation;
-                    user.OnlineStatus = tempUser.OnlineStatus;
-                }
-
-                if (jOrder["quantity"]?.ToObject<int>() is not int quantity ||
-                    jOrder["platinum"]?.ToObject<int>() is not int price ||
-                    jOrder["visible"]?.ToObject<bool>() is not bool visible ||
-                    jOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType orderType ||
-                    orderType == OrderType.Undefined ||
-                    jOrder["creation_date"]?.ToObject<DateTime>() is not DateTime creationDate ||
-                    jOrder["last_update"]?.ToObject<DateTime>() is not DateTime modifiedDate)
-                    continue;
-
-                Order order = new(id)
-                {
-                    Item = item,
-                    User = user,
-                    Visible = visible,
-                    Quantity = quantity,
-                    UnitPrice = price,
-                    OrderType = orderType,
-                    CreationDate = creationDate,
-                    ModificationDate = modifiedDate
-                };
-
-                orders.Add(order);
+                if (GetOrderFromJObject(jOrder as JObject, users, new ItemCollection(new[] {item})) is Order order)
+                    orders.Add(order);
             }
 
             return orders;
         }
 
-        public async Task<Order> CreateOrderAsync(Item item, User user, int platinum, int quantity, OrderType orderType = OrderType.Sell, bool visible = true)
+        public async Task<Order> CreateOrderAsync(Item item, int platinum, int quantity, OrderType orderType = OrderType.Sell, bool visible = true)
         {
             if (string.IsNullOrWhiteSpace(JWT)) throw new AccessViolationException("No JWT provided.");
             if (item == null) throw new ArgumentNullException(nameof(item));
-            if (user == null) throw new ArgumentNullException(nameof(user));
             if (platinum <= 0) throw new ArgumentOutOfRangeException(nameof(platinum));
             if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
             if (!Enum.IsDefined(typeof(OrderType), orderType))
@@ -466,47 +460,85 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
 
-            request.Headers.Add("Authorization", "JWT " + JWT);
-            request.Headers.Add("language", "en");
-            request.Headers.Add("accept", "application/json");
-            request.Headers.Add("platform", "pc");
-            request.Headers.Add("auth_type", "header");
-            request.Headers.Remove("Cookie");
+            FillRequestHeaders(request);
 
             var response = await client.SendAsync(request);
             string responseBody = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
                 return null;
-            
-            JsonSerializer serializer = new()
-                {Converters = {new ApiUserOnlineStatusJsonConverter(), new ApiOrderTypeJsonConverter()}};
-            JToken jsonOrder = JToken.Parse(responseBody)["payload"]?["order"];
 
-            if (jsonOrder?["id"]?.ToObject<string>() is not string _id ||
-                jsonOrder["quantity"]?.ToObject<int>() is not int _quantity ||
-                jsonOrder["platinum"]?.ToObject<int>() is not int _price ||
-                jsonOrder["visible"]?.ToObject<bool>() is not bool _visible ||
-                jsonOrder["order_type"]?.ToObject<OrderType>(serializer) is not OrderType _orderType || _orderType == OrderType.Undefined ||
-                jsonOrder["creation_date"]?.ToObject<DateTime>() is not DateTime _creationDate ||
-                jsonOrder["last_update"]?.ToObject<DateTime>() is not DateTime _modifiedDate)
-                return null;
+            Order newOrder = GetOrderFromJObject(JToken.Parse(responseBody)["payload"]?["order"] as JObject, new UserCollection(new[] {CurrentUser}), new ItemCollection(new[] {item}));
 
-            Order newOrder = new(_id)
-            {
-                Item = item,
-                User = user,
-                Visible = _visible,
-                Quantity = _quantity,
-                UnitPrice = _price,
-                OrderType = _orderType,
-                CreationDate = _creationDate,
-                ModificationDate = _modifiedDate
-            };
-
-            user.Orders.Add(newOrder);
+            if (newOrder is not null)
+                CurrentUser.Orders.Add(newOrder);
 
             return newOrder;
+        }
+
+        public async Task<Order> UpdateOrderAsync(Order order, int platinum, int quantity, bool visible)
+        {
+            if (string.IsNullOrWhiteSpace(JWT)) throw new AccessViolationException("No JWT provided.");
+            if (order == null) throw new ArgumentNullException(nameof(order));
+            if (platinum <= 0) throw new ArgumentOutOfRangeException(nameof(platinum));
+            if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
+
+            dynamic payload = new
+            {
+                order_id = order.Id,
+                platinum,
+                quantity,
+                visible
+            };
+
+            string body = JsonConvert.SerializeObject(payload);
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{baseEndpoint}profile/orders/{order.Id}"),
+                Method = HttpMethod.Put,
+                Content = new StringContent(body, Encoding.UTF8, "application/json")
+            };
+
+            FillRequestHeaders(request);
+
+            var response = await client.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(responseBody))
+                return null;
+
+            return GetOrderFromJObject(JToken.Parse(responseBody)["payload"]?["order"] as JObject, new UserCollection(new[] { CurrentUser }), new ItemCollection(new[] { order.Item }));
+        }
+
+        public async Task<OrderCollection> GetOwnOrdersAsync(ItemCollection items)
+        {
+            if (string.IsNullOrWhiteSpace(JWT)) throw new AccessViolationException("No JWT provided.");
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{baseEndpoint}profile/{CurrentUser.Name}/orders"),
+                Method = HttpMethod.Get
+            };
+
+            FillRequestHeaders(request);
+
+            var response = await client.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            JArray sellJOrders = JObject.Parse(responseBody)["payload"]?["sell_orders"]?.ToObject<JArray>();
+            JArray buyJOrders = JObject.Parse(responseBody)["payload"]?["buy_orders"]?.ToObject<JArray>();
+
+            if (sellJOrders is null || buyJOrders is null)
+                return null;
+
+            OrderCollection orders = new();
+
+            foreach (JToken jOrder in sellJOrders.Concat(buyJOrders))
+                if (GetOrderFromJObject(jOrder as JObject, new UserCollection(new[] { CurrentUser }), items) is Order order)
+                    orders.Add(order);
+
+            return orders;
         }
 
         #endregion

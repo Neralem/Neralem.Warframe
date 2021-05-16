@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MarketCrawler.Views.UserControls"
              xmlns:controls="clr-namespace:Neralem.Wpf.UI.Controls;assembly=Neralem.Wpf"
              xmlns:viewModels="clr-namespace:MarketCrawler.ViewModels"
              xmlns:valueConverters="clr-namespace:Neralem.Wpf.ValueConverters;assembly=Neralem.Wpf"
@@ -40,6 +39,8 @@
             <controls:ExtButton Content="Add" Grid.Column="1" Margin="5,0,0,0" Command="{Binding AddEntryCommand}" CommandParameter="{Binding ItemText}"/>
         </Grid>
 
+        <controls:ExtButton Content="Zum ∅ Preis einstellen" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left"
+                            Command="{Binding ListItemsForAveragePriceCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}}"/>
         <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center">
             <TextBlock Text="New" FontWeight="Bold" FontSize="18"/>
             <TextBlock Visibility="{Binding NewItemsPlat, Mode=OneWay, Converter={StaticResource ValueIsGreaterThanToVisibilityConverter}, ConverterParameter=0}">
@@ -59,6 +60,13 @@
 
         <DataGrid Grid.Row="2" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" ItemsSource="{Binding NewEntries}" SelectionMode="Single">
             <DataGrid.Columns>
+                <DataGridTemplateColumn SortMemberPath="IsChecked" Width="Auto" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
+                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name" Width="*" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
@@ -72,8 +80,6 @@
                                                     MouseDownBrush="Transparent" MouseOverBrush="Transparent" DoubleClickCommand="{Binding Inventory.MainVm.OpenItemInMarketCommand}" DoubleClickCommandParameter="{Binding Item}" Grid.Column="0">
                                     <controls:AutoToolTipTextBlock Text="{Binding Item.Name, Mode=OneWay}"/>
                                 </controls:ExtButton>
-                                <controls:ExtButton Grid.Column="1" Content="To Market" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
-                                                    Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center" Command="{Binding Inventory.CreateOrderCommand}" CommandParameter="{Binding}"/>
                                 <controls:ExtButton Grid.Column="2" Content="X" Padding="1" Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
                                                     Background="Transparent" BorderThickness="0" CornerRadius="5" VerticalAlignment="Center" Command="{Binding Inventory.RemoveEntryCommand}" CommandParameter="{Binding}"/>
                             </Grid>

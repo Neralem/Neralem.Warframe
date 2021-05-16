@@ -34,7 +34,7 @@ namespace MarketCrawler.ViewModels
                             if (SaveUserData)
                                 SaveLoginData();
                             (param as ICloseable)?.CloseIt(null);
-                            
+                            OrderCollection myOrders = await ApiProvider.GetOwnOrdersAsync(MainVm.Items);
                         }
                         else
                         {
@@ -117,10 +117,12 @@ namespace MarketCrawler.ViewModels
 
         private static string UserDataFilename => "LoginData.json";
         private MarketApiProvider ApiProvider { get; }
+        public MainVm MainVm { get; }
 
-        public LoginVm(MarketApiProvider apiProvider)
+        public LoginVm(MarketApiProvider apiProvider, MainVm mainVm)
         {
             ApiProvider = apiProvider;
+            MainVm = mainVm;
 
             if (File.Exists(UserDataFilename))
             {
