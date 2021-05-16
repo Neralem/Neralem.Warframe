@@ -10,6 +10,7 @@ using Neralem.Warframe.Core.DataAcquisition;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Neralem.Wpf.UI.Dialogs;
 using System.Windows;
@@ -120,56 +121,66 @@ namespace MarketCrawler.ViewModels
                         if (entriesToUpload.Any(x => x.Item.AveragePrice is null))
                             ExtMessageBox.Show("Keine Daten", "Es müssen erst die Durchschnittspreise erfasst werden.", MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
 
-                        if (ApiProvider.CurrentUser is null)
-                            ExtMessageBox.Show("Nicht eingeloggt.", "Du musst dafür eingeloggt sein.", MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
-
-                        OrderCollection myOrders = await ApiProvider.GetOwnOrdersAsync(MainVm.Items);
-
-                        bool updatePrices = false;
-
-                        foreach (InventoryEntryVm entry in entriesToUpload)
+                        //if (ApiProvider.CurrentUser is null)
+                        //ExtMessageBox.Show("Nicht eingeloggt.", "Du musst dafür eingeloggt sein.",MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
+                        try
                         {
-                            Order order = myOrders.FirstOrDefault(x => x.Item.Equals(entry.Item));
-                            await Task.Delay(333);
+                            OrderCollection myOrders = await ApiProvider.GetOwnOrdersAsync(MainVm.Items);
 
-                            if (order is not null && order.UnitPrice != Math.Round(entry.Item.AveragePrice ?? 0))
+                            bool updatePrices = false;
+
+                            foreach (InventoryEntryVm entry in entriesToUpload)
                             {
-                                MessageBoxResult result = ExtMessageBox.Show(
-                                    "Preiskonflikt",
-                                    "Für mindestens eines der Items die eingestellt werden soll existiert bereits eine Order und deren Preis unterscheidet sich vom aktuellen Durchschnittspreis. Soll der Preis mit dem aktuellen Durchschnittspreis angepasst werden?",
-                                    MessageBoxButton.YesNoCancel,
-                                    MessageBoxImage.Question,
-                                    param as Window);
+                                Order order = myOrders.FirstOrDefault(x => x.Item.Equals(entry.Item));
+                                await Task.Delay(333);
 
-                                switch (result)
+                                if (order is not null && order.UnitPrice != Math.Round(entry.Item.AveragePrice ?? 0))
                                 {
-                                    case MessageBoxResult.Cancel:
-                                        return;
-                                    case MessageBoxResult.Yes:
-                                        updatePrices = true;
-                                        break;
-                                    case MessageBoxResult.No:
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
-                                }
+                                    MessageBoxResult result = ExtMessageBox.Show(
+                                        "Preiskonflikt",
+                                        "Für mindestens eines der Items die eingestellt werden soll existiert bereits eine Order und deren Preis unterscheidet sich vom aktuellen Durchschnittspreis. Soll der Preis mit dem aktuellen Durchschnittspreis angepasst werden?",
+                                        MessageBoxButton.YesNoCancel,
+                                        MessageBoxImage.Question,
+                                        param as Window);
 
-                                break;
+                                    switch (result)
+                                    {
+                                        case MessageBoxResult.Cancel:
+                                            return;
+                                        case MessageBoxResult.Yes:
+                                            updatePrices = true;
+                                            break;
+                                        case MessageBoxResult.No:
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            foreach (InventoryEntryVm entry in entriesToUpload)
+                            {
+                                Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
+                                int averagePrice = (int) Math.Round(entry.Item.AveragePrice ?? 0);
+                                Order newOrder = existingOrder is null
+                                    ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
+                                    : await ApiProvider.UpdateOrderAsync(existingOrder,
+                                        updatePrices ? averagePrice : existingOrder.UnitPrice,
+                                        entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
+
+                                if (newOrder is not null)
+                                    NewEntries.Remove(entry);
+
+                                await Task.Delay(333);
                             }
                         }
-
-                        foreach (InventoryEntryVm entry in entriesToUpload)
+                        catch (AccessViolationException e)
                         {
-                            Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
-                            int averagePrice = (int)Math.Round(entry.Item.AveragePrice ?? 0);
-                            Order newOrder = existingOrder is null
-                                ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
-                                : await ApiProvider.UpdateOrderAsync(existingOrder, updatePrices ? averagePrice : existingOrder.UnitPrice, entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
-
-                            if (newOrder is not null)
-                                NewEntries.Remove(entry);
-
-                            await Task.Delay(333);
+                            Debug.WriteLine(e);
+                            ExtMessageBox.Show("Error", "Sie müssen eingeloggt sein, um Orders zu erstellen",
+                                MessageBoxButton.OK, MessageBoxImage.Error,param as Window);
                         }
                     },
                     _ =>
