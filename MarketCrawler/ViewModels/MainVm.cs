@@ -264,6 +264,7 @@ namespace MarketCrawler.ViewModels
         public static string InventoryFilename => "Inventory.json";
         public MarketApiProvider ApiProvider { get; } = new();
         public InventoryVm InventoryVm { get; }
+        public MyOrdersVm MyOrdersVm { get; }
         public bool UpdateAllItems { get; set; } = false;
         public Debouncer ToolTipDebouncer { get; } = new();
 
@@ -454,6 +455,7 @@ namespace MarketCrawler.ViewModels
             Users = File.Exists(UsersFilename) ? UserCollection.FromFile(UsersFilename) : new UserCollection();
             InventoryVm = new InventoryVm(this, ApiProvider);
             InventoryVm.LoadFromFile(InventoryFilename);
+            MyOrdersVm = new MyOrdersVm(this);
             _ordersUpdateProgress.ProgressChanged += (_, progress) => OrdersUpdateProgress = progress;
         }
 

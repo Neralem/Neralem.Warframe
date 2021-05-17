@@ -58,6 +58,9 @@
             <TabItem Header="Orders">
                 <userControls:UcOrders/>
             </TabItem>
+            <TabItem Header="My Orders">
+                <userControls:UcMyOrders DataContext="{Binding MyOrdersVm}"/>
+            </TabItem>
             <TabItem Header="Inventory">
                 <userControls:UcInventory DataContext="{Binding InventoryVm}"/>
             </TabItem>

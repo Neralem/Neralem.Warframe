@@ -28,7 +28,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBox Text="{Binding OrderSearchString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-            <controls:ExtButton Content="Clear Search"  Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right"/>
+            <controls:ExtButton Content="Clear Search" Command="{Binding SearchDeleteCommand}" Grid.Column="1" HorizontalAlignment="Right" Margin="5,0,0,0"/>
         </Grid>
         <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredOrders}" AutoGenerateColumns="False" EnableRowVirtualization="True" SelectionMode="Single" SelectionUnit="FullRow">
             <DataGrid.CellStyle>
@@ -37,7 +37,7 @@
                 </Style>
             </DataGrid.CellStyle>
             <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name">
+                <DataGridTemplateColumn Header="Name" SortMemberPath="Item.Name" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <controls:ExtButton Content="{Binding Item.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"
@@ -58,7 +58,7 @@
                 <DataGridTextColumn Header="Plat" Binding="{Binding UnitPrice, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Total Plat" Binding="{Binding TotalPlat, Mode=OneWay}"/>
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity, Mode=OneWay}"/>
-                <DataGridTemplateColumn Header="User" SortMemberPath="User.Name">
+                <DataGridTemplateColumn Header="User" SortMemberPath="User.Name" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type doMs:Order}">
                             <controls:ExtButton Content="{Binding User.Name}" HorizontalAlignment="Left" Background="Transparent" MouseOverBrush="Transparent"

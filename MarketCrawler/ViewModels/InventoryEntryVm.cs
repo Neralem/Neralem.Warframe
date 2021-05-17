@@ -56,7 +56,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private bool isChecked;
+        private bool isChecked = true;
         public bool IsChecked
         {
             get => isChecked;

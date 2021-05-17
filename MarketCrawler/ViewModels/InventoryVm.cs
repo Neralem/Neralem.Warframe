@@ -81,8 +81,6 @@ namespace MarketCrawler.ViewModels
                         if (param is not InventoryEntryVm entry)
                             return;
 
-                        entry.IsChecked = false;
-
                         if (NewEntries.Contains(entry))
                         {
                             NewEntries.Remove(entry);
@@ -160,15 +158,13 @@ namespace MarketCrawler.ViewModels
                                 }
                             }
 
-                            foreach (InventoryEntryVm entry in entriesToUpload)
-                            {
-                                Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
-                                int averagePrice = (int) Math.Round(entry.Item.AveragePrice ?? 0);
-                                Order newOrder = existingOrder is null
-                                    ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
-                                    : await ApiProvider.UpdateOrderAsync(existingOrder,
-                                        updatePrices ? averagePrice : existingOrder.UnitPrice,
-                                        entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
+                        foreach (InventoryEntryVm entry in entriesToUpload)
+                        {
+                            Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
+                            int averagePrice = (int)Math.Round(entry.Item.AveragePrice ?? 0);
+                            Order newOrder = existingOrder is null
+                                ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
+                                : await ApiProvider.UpdateOrderAsync(existingOrder, updatePrices ? averagePrice : existingOrder.UnitPrice, entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
 
                                 if (newOrder is not null)
                                     NewEntries.Remove(entry);
@@ -183,10 +179,7 @@ namespace MarketCrawler.ViewModels
                                 MessageBoxButton.OK, MessageBoxImage.Error,param as Window);
                         }
                     },
-                    _ =>
-                    {
-                        return NewEntries.Any(x => x.IsChecked);
-                    });
+                    _ => !IsUploadingOrders && NewEntries.Any(x => x.IsChecked));
             }
         }
 
@@ -259,6 +252,20 @@ namespace MarketCrawler.ViewModels
                 if (value != itemText)
                 {
                     itemText = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        private bool isUploadingOrders;
+        public bool IsUploadingOrders
+        {
+            get => isUploadingOrders;
+            set 
+            { 
+                if (value != isUploadingOrders)
+                {
+                    isUploadingOrders = value;
                     NotifyPropertyChanged();
                 }
             }
