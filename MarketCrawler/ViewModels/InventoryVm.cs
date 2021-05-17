@@ -158,13 +158,15 @@ namespace MarketCrawler.ViewModels
                                 }
                             }
 
-                        foreach (InventoryEntryVm entry in entriesToUpload)
-                        {
-                            Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
-                            int averagePrice = (int)Math.Round(entry.Item.AveragePrice ?? 0);
-                            Order newOrder = existingOrder is null
-                                ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
-                                : await ApiProvider.UpdateOrderAsync(existingOrder, updatePrices ? averagePrice : existingOrder.UnitPrice, entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
+                            foreach (InventoryEntryVm entry in entriesToUpload)
+                            {
+                                Order existingOrder = myOrders.FirstOrDefault(x => x.Item == entry.Item);
+                                int averagePrice = (int) Math.Round(entry.Item.AveragePrice ?? 0);
+                                Order newOrder = existingOrder is null
+                                    ? await ApiProvider.CreateOrderAsync(entry.Item, averagePrice, entry.Quantity)
+                                    : await ApiProvider.UpdateOrderAsync(existingOrder,
+                                        updatePrices ? averagePrice : existingOrder.UnitPrice,
+                                        entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
 
                                 if (newOrder is not null)
                                     NewEntries.Remove(entry);
@@ -176,7 +178,7 @@ namespace MarketCrawler.ViewModels
                         {
                             Debug.WriteLine(e);
                             ExtMessageBox.Show("Error", "Sie müssen eingeloggt sein, um Orders zu erstellen",
-                                MessageBoxButton.OK, MessageBoxImage.Error,param as Window);
+                                MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
                         }
                     },
                     _ => !IsUploadingOrders && NewEntries.Any(x => x.IsChecked));
