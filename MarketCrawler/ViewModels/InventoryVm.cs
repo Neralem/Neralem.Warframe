@@ -119,8 +119,7 @@ namespace MarketCrawler.ViewModels
                         if (entriesToUpload.Any(x => x.Item.AveragePrice is null))
                             ExtMessageBox.Show("Keine Daten", "Es müssen erst die Durchschnittspreise erfasst werden.", MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
 
-                        //if (ApiProvider.CurrentUser is null)
-                        //ExtMessageBox.Show("Nicht eingeloggt.", "Du musst dafür eingeloggt sein.",MessageBoxButton.OK, MessageBoxImage.Error, param as Window);
+                        
                         try
                         {
                             OrderCollection myOrders = await ApiProvider.GetOwnOrdersAsync(MainVm.Items);

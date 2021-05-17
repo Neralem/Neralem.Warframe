@@ -23,6 +23,15 @@ namespace MarketCrawler.ViewModels
             IsBusy = false;
         }
 
+        private async Task<bool> DeleteOwnOrderAsync(OrderViewModel orderViewModel)
+        {
+            if (MainVm.ApiProvider.CurrentUser is null) return false;
+            Order delOrder = orderViewModel.Order;
+            MainVm.PopupText = $@"Erfolgreich {orderViewModel.Order.Item.Name} Order gelöscht";
+            MainVm.PopupVisible = true;
+            return await MainVm.ApiProvider.DeleteOwnOrderAsync(delOrder);
+        }
+
         private async Task UpdateOrderPrices()
         {
             IsBusy = true;
@@ -47,6 +56,29 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        private ICommand deleteOwnOrderCommand;
+        public ICommand DeleteOwnOrderCommand
+        {
+            get
+            {
+                
+                return deleteOwnOrderCommand ??= new RelayCommand(
+                    async param =>
+                    {
+                        if (param is not OrderViewModel vm) return;
+                        if (await DeleteOwnOrderAsync(vm))
+                        {
+                            MyOrders.Remove(vm.Order);
+                            OrderViewModels = CreateOrderViewModels();
+                            
+
+                        }
+
+                    },
+                    _=>!IsBusy && MyOrders!=null);
+
+            }
+        }
         private ICommand updateOrderPricesCommand;
         public ICommand UpdateOrderPricesCommand
         {
@@ -71,10 +103,9 @@ namespace MarketCrawler.ViewModels
                 if (value != myOrders)
                 {
                     myOrders = value;
+                    OrderViewModels = CreateOrderViewModels();
                     NotifyPropertyChanged();
-                    OrderViewModels = MyOrders is null
-                        ? Array.Empty<OrderViewModel>()
-                        : MyOrders.Where(x => x.OrderType == OrderType.Sell).Select(x => new OrderViewModel(x, this)).ToArray();
+                    
                 }
             }
         }
@@ -140,6 +171,13 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        public OrderViewModel[] CreateOrderViewModels()
+        {
+            return MyOrders is null
+                ? Array.Empty<OrderViewModel>()
+                : MyOrders.Where(x => x.OrderType == OrderType.Sell).Select(x => new OrderViewModel(x, this)).ToArray();
+            
+        }
         public void CheckAllChecked()
         {
             if (orderViewModels.All(x => x.IsChecked))

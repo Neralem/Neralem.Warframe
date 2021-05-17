@@ -540,6 +540,23 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
             return orders;
         }
+        public async Task<bool> DeleteOwnOrderAsync(Order myOrder)
+        {
+            if (string.IsNullOrWhiteSpace(JWT)) throw new AccessViolationException("No JWT provided.");
+
+            var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{baseEndpoint}profile/orders/{myOrder.Id}"),
+                Method = HttpMethod.Delete
+            };
+
+            FillRequestHeaders(request);
+
+            var response = await client.SendAsync(request);
+            
+            return response.IsSuccessStatusCode;
+        }
+
 
         #endregion
     }
