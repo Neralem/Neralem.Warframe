@@ -8,12 +8,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Neralem.Wpf;
+using Neralem.Wpf.UI.Dialogs;
 
 namespace MarketCrawler.ViewModels
 {
@@ -96,9 +98,13 @@ namespace MarketCrawler.ViewModels
                         {
                             CancellationTokenSource updateCtr = new();
                             Progress<ItemUpdateProgress> progress = new();
-                            Task<ItemCollection> getItemsTask = ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items, UpdateAllItems);
-                            ItemsUpdateProgressDialog updateProgressDialog = new() { Owner = Application.Current.MainWindow };
-                            ItemsUpdateProgressVm progressVm = new(progress, updateCtr) { Closeable = updateProgressDialog };
+                            Task<ItemCollection> getItemsTask =
+                                ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items,
+                                    UpdateAllItems);
+                            ItemsUpdateProgressDialog updateProgressDialog =
+                                new() {Owner = Application.Current.MainWindow};
+                            ItemsUpdateProgressVm progressVm = new(progress, updateCtr)
+                                {Closeable = updateProgressDialog};
                             updateProgressDialog.DataContext = progressVm;
                             updateProgressDialog.ShowDialog();
                             ItemCollection newItems = await getItemsTask;
@@ -112,10 +118,17 @@ namespace MarketCrawler.ViewModels
                                 else
                                     Items = new ItemCollection(newItems.OrderBy(x => x.Name));
                             }
+
                             await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
                             Items.ToFile(ItemsFilename);
                         }
-                        catch (TaskCanceledException) { }
+                        catch (TaskCanceledException)
+                        {
+                        }
+                        catch (HttpRequestException)
+                        {
+                            ExtMessageBox.Show("Warframe Market Unavailable", "Warframe Market antwortet nicht.",
+                                MessageBoxButton.OK, MessageBoxImage.Asterisk);}
 
                         UpdateOrdersCommand.Execute(null);
                     },
