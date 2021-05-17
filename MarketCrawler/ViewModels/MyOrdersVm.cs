@@ -88,6 +88,7 @@ namespace MarketCrawler.ViewModels
                 if (value != orderViewModels)
                 {
                     orderViewModels = value;
+                    CheckAllChecked();
                     NotifyPropertyChanged();
                 }
             }
@@ -105,6 +106,48 @@ namespace MarketCrawler.ViewModels
                     NotifyPropertyChanged();
                 }
             }
+        }
+
+        private bool? allChecked =false;
+
+        public bool? AllChecked
+        {
+            get => allChecked;
+            set
+            {
+                if (value == true)
+                {
+                    allChecked = true;
+                    foreach (var orders in orderViewModels.Where(x => !x.IsChecked))
+                    {
+                        orders.IsChecked = true;
+                    }
+                }
+                else if (value == false)
+                {
+                    allChecked = false;
+                    foreach (var orders in orderViewModels.Where(x => x.IsChecked))
+                    {
+                        orders.IsChecked = false;
+                    }
+                }
+                else
+                {
+                    allChecked = null;
+                }
+
+                NotifyPropertyChanged();
+            }
+        }
+
+        public void CheckAllChecked()
+        {
+            if (orderViewModels.All(x => x.IsChecked))
+                AllChecked = true;
+            else if (orderViewModels.Any(x => x.IsChecked))
+                AllChecked = null;
+            else
+                AllChecked = false;
         }
 
         #endregion

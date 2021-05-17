@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Windows.Input;
 using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
@@ -37,6 +38,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        
         public InventoryVm Inventory { get; }
         public Item Item { get; }
 
@@ -56,7 +58,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private bool isChecked = true;
+        private bool isChecked;
         public bool IsChecked
         {
             get => isChecked;
@@ -65,6 +67,7 @@ namespace MarketCrawler.ViewModels
                 if (value != isChecked)
                 {
                     isChecked = value;
+                    Inventory.CheckAllChecked();
                     NotifyPropertyChanged();
                 }
             }

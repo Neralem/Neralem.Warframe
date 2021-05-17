@@ -16,9 +16,14 @@
         <DataGrid Grid.Row="0" ItemsSource="{Binding OrderViewModels}" AutoGenerateColumns="False" GridLinesVisibility="None">
             <DataGrid.Columns>
                 <DataGridTemplateColumn IsReadOnly="True">
+                  <DataGridTemplateColumn.HeaderTemplate>
+                      <DataTemplate DataType="{x:Type viewModels:MyOrdersVm }">
+                          <CheckBox IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid},Mode=FindAncestor},Path=DataContext.AllChecked,UpdateSourceTrigger=PropertyChanged}"/>
+                      </DataTemplate>
+                  </DataGridTemplateColumn.HeaderTemplate>  
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type viewModels:OrderViewModel}">
-                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -272,7 +272,48 @@ namespace MarketCrawler.ViewModels
                 }
             }
         }
+        private bool? allChecked=false;
+        public bool? AllChecked
+        {
+            get => allChecked;
+            set
+            {
+                
+                if (value ==true)
+                {
+                    allChecked = true;
+                    foreach (var items in NewEntries.Where(x => !x.IsChecked))
+                    {
+                        items.IsChecked = true;
+                    }
+                }
+                else if(value ==false)
+                {
+                    allChecked = false;
+                    foreach (var items in NewEntries.Where(x => x.IsChecked))
+                    {
+                        items.IsChecked = false;
+                    }
+                }
+                else
+                {
+                    allChecked = null;
+                }
 
+                NotifyPropertyChanged();
+            }
+        }
+
+        public void CheckAllChecked()
+        {
+            if (NewEntries.All(x=>x.IsChecked))
+                AllChecked = true;
+            else if (NewEntries.Any(x => x.IsChecked))
+                AllChecked = null;
+            else
+                AllChecked=false;
+            
+        }
         public void SaveToFile(string filename)
         {
             JObject jObject = new();

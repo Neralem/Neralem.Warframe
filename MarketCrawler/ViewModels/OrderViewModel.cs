@@ -2,6 +2,7 @@
 using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -112,10 +113,13 @@ namespace MarketCrawler.ViewModels
                 if (value != isChecked)
                 {
                     isChecked = value;
+                    MyOrdersVm.CheckAllChecked();
                     NotifyPropertyChanged();
                 }
             }
         }
+
+        
 
         #endregion
     }

@@ -60,10 +60,15 @@
 
         <DataGrid Grid.Row="2" Grid.Column="0" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" ItemsSource="{Binding NewEntries}" SelectionMode="Single">
             <DataGrid.Columns>
-                <DataGridTemplateColumn SortMemberPath="IsChecked" Width="Auto" CanUserResize="False">
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.HeaderTemplate> 
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid}},Path=DataContext.AllChecked,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.HeaderTemplate>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type viewModels:InventoryEntryVm}">
-                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox HorizontalAlignment="Center" IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
