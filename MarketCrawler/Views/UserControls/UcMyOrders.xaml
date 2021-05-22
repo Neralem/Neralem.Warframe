@@ -29,7 +29,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Item" Binding="{Binding Order.Item.Name}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Preis" Binding="{Binding UnitPrice}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="∅ Preis" Binding="{Binding Order.Item.AveragePrice}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="∅ Preis" Binding="{Binding Order.Item.AveragePrice, StringFormat=N1}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity}" IsReadOnly="True"/>
                 <DataGridTemplateColumn IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
