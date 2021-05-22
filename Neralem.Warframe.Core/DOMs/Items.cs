@@ -29,7 +29,7 @@ namespace Neralem.Warframe.Core.DOMs
                     .Where(x => x.User.OnlineStatus is OnlineStatus.Online or OnlineStatus.Ingame)
                     .OrderByDescending(x => x.User.OnlineStatus)
                     .ThenBy(x => x.UnitPrice)
-                    .Take(10)
+                    .Take(6)
                     .ToArray();
 
                 if (!orders.Any())
