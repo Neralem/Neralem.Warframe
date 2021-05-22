@@ -122,13 +122,29 @@ namespace MarketCrawler.ViewModels
                             await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
                             Items.ToFile(ItemsFilename);
                         }
-                        catch (TaskCanceledException)
+                        catch (TaskCanceledException) { }
+                        catch (HttpRequestException) { ExtMessageBox.Show("Warframe.Market Unavailable", "Warframe.Market antwortet nicht.", MessageBoxButton.OK, MessageBoxImage.Asterisk); }
+
+                        LoginVm loginVm = new LoginVm(ApiProvider, this);
+                        if (!string.IsNullOrWhiteSpace(loginVm.EmailAddress) && loginVm.Password?.Length > 0)
                         {
+                            try
+                            {
+                                if (await ApiProvider.TryLoginAsync(loginVm.EmailAddress, loginVm.Password) is User user)
+                                {
+                                    PopupText = $"Successfully logged in as \"{user.Name}\"";
+                                    PopupVisible = true;
+                                }
+                            }
+                            catch
+                            {
+                                PopupText = $"Failed to login as \"{loginVm.EmailAddress}\"";
+                                PopupVisible = true;
+                            }
+
+                            if (ApiProvider.CurrentUser is not null)
+                                (MyOrdersVm.GetOrdersCommand as RelayCommand)?.ExecuteIfCanExecute(null);
                         }
-                        catch (HttpRequestException)
-                        {
-                            ExtMessageBox.Show("Warframe Market Unavailable", "Warframe Market antwortet nicht.",
-                                MessageBoxButton.OK, MessageBoxImage.Asterisk);}
 
                         UpdateOrdersCommand.Execute(null);
                     },
@@ -319,7 +335,7 @@ namespace MarketCrawler.ViewModels
                     NotifyPropertyChanged();
 
                     if (value)
-                        ToolTipDebouncer.Debounce(TimeSpan.FromSeconds(2), _ => PopupVisible = false);
+                        ToolTipDebouncer.Debounce(TimeSpan.FromSeconds(4), _ => PopupVisible = false);
                 }
             }
         }

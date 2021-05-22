@@ -138,6 +138,8 @@ namespace MarketCrawler.ViewModels
                 {
                     isBusy = value;
                     NotifyPropertyChanged();
+                    (UpdateOrderPricesCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (GetOrdersCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
