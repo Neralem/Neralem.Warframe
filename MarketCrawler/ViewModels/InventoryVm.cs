@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Neralem.Wpf.UI.Dialogs;
 using System.Windows;
+using System.Windows.Data;
 
 namespace MarketCrawler.ViewModels
 {
@@ -168,7 +169,10 @@ namespace MarketCrawler.ViewModels
                                         entry.Quantity + existingOrder.Quantity, existingOrder.Visible);
 
                                 if (newOrder is not null)
+                                {
                                     NewEntries.Remove(entry);
+                                    SaveToFile(MainVm.InventoryFilename);
+                                }
 
                                 await Task.Delay(333);
                             }
@@ -234,6 +238,12 @@ namespace MarketCrawler.ViewModels
             ApiProvider = apiProvider;
             NewEntries = new ObservableCollection<InventoryEntryVm>();
             TrashEntries = new ObservableCollection<InventoryEntryVm>();
+        }
+
+        public void ResetCollectionView()
+        {
+            CollectionViewSource.GetDefaultView(NewEntries)?.Refresh();
+            CollectionViewSource.GetDefaultView(TrashEntries)?.Refresh();
         }
 
         public IEnumerable<string> ItemNames => MainVm.Items.Select(x => x.Name);

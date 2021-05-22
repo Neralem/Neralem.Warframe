@@ -119,8 +119,6 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        
-
         #endregion
     }
 }

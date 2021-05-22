@@ -192,12 +192,8 @@ namespace MarketCrawler.ViewModels
                         foreach (Item item in Items)
                             item.Orders = Orders.Where(x => x.Item == item).ToArray();
 
-                        var c = InventoryVm.TrashEntries;
-                        InventoryVm.TrashEntries = null;
-                        InventoryVm.TrashEntries = c;
-                        c = InventoryVm.NewEntries;
-                        InventoryVm.NewEntries = null;
-                        InventoryVm.NewEntries = c;
+                        InventoryVm.ResetCollectionView();
+                        MyOrdersVm.ResetCollectionView();
 
                         FilteredItems = FilterItems();
                     },

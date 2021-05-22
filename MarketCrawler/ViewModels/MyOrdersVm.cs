@@ -4,6 +4,7 @@ using Neralem.Wpf.Mvvm;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace MarketCrawler.ViewModels
@@ -42,6 +43,8 @@ namespace MarketCrawler.ViewModels
             }
             IsBusy = false;
         }
+
+        public void ResetCollectionView() => CollectionViewSource.GetDefaultView(OrderViewModels)?.Refresh();
 
         #region Commands
 
@@ -140,7 +143,6 @@ namespace MarketCrawler.ViewModels
         }
 
         private bool? allChecked =false;
-
         public bool? AllChecked
         {
             get => allChecked;

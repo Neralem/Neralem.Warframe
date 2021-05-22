@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Input;
-using Neralem.Warframe.Core.DOMs;
+﻿using Neralem.Warframe.Core.DOMs;
 using Neralem.Wpf.Mvvm;
+using System;
+using System.Windows.Input;
 
 namespace MarketCrawler.ViewModels
 {
@@ -58,7 +57,7 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private bool isChecked;
+        private bool isChecked = true;
         public bool IsChecked
         {
             get => isChecked;
