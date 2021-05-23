@@ -46,6 +46,8 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
                 jObject.Add("itemType", (int)ItemType.PrimeSet);
                 jObject.Add("parts", JArray.FromObject(primeSet.Parts.Select(x => x.Id).ToArray()));
             }
+            else
+                jObject.Add("itemType", (int)ItemType.Undefined);
 
             serializer.Serialize(writer, jObject);
         }
@@ -62,10 +64,7 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
             switch (type)
             {
                 case ItemType.Relic:
-                    item = new Relic(id)
-                    {
-                        Tier = jObject["ducats"]?.ToObject<RelicTier>() ?? RelicTier.Undefined
-                    };
+                    item = new Relic(id) { Tier = jObject["ducats"]?.ToObject<RelicTier>() ?? RelicTier.Undefined };
                     break;
                 case ItemType.PrimePart:
                     item = new PrimePart(id);
@@ -76,7 +75,8 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
                     item = new PrimeSet(id);
                     break;
                 default:
-                    throw new InvalidDataException();
+                    item = new Item(id);
+                    break;
             }
 
             item.Name = jObject["name"]?.ToObject<string>();

@@ -35,6 +35,12 @@ namespace Neralem.Warframe.Core.DataAcquisition.JsonConverter
                     ? jObject.ToObject<PrimeSet>(new JsonSerializer { Converters = { new ApiPrimeSetJsonConverter() } })
                     : jObject.ToObject<PrimePart>(new JsonSerializer { Converters = { new ApiPrimePartJsonConverter() } });
             }
+            else
+            {
+                string id = jObject["id"]?.ToObject<string>();
+                item = new Item(id);
+                ApiItemDeserializationHelper.ParseDefaultValues(item, jObject);
+            }
 
             return item;
         }

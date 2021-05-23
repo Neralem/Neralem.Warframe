@@ -21,6 +21,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="10"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -41,15 +43,19 @@
             <Run Text="Prime Sets: "/>
             <Run Text="{Binding Progress.PrimeSetCount, Mode=OneWay}"/>
         </TextBlock>
-        <ProgressBar Grid.Row="2" Minimum="0" Maximum="1" Value="{Binding ProgressPercentage, Mode=OneWay}" Grid.ColumnSpan="3" Grid.Column="0" Height="20"/>
-        <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Run Text="Sonstige: "/>
+            <Run Text="{Binding Progress.MiscCount, Mode=OneWay}"/>
+        </TextBlock>
+        <ProgressBar Grid.Row="4" Minimum="0" Maximum="1" Value="{Binding ProgressPercentage, Mode=OneWay}" Grid.ColumnSpan="3" Grid.Column="0" Height="20"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Run Text="{Binding TotalItemCount, Mode=OneWay}"/>
             <Run Text="/"/>
             <Run Text="{Binding TotalItemsToDownload, Mode=OneWay}"/>
             <Run Text=" "/>
             <Run Text="{Binding ProgressPercentage, Mode=OneWay, StringFormat=p0}"/>
         </TextBlock>
-        <controls:ExtButton Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" HorizontalAlignment="Right" Content="Abbrechen" Command="{Binding CancelUpdateCommand}"/>
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4" Text="{Binding Progress.CurrentItemUrlName}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        <controls:ExtButton Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="6" HorizontalAlignment="Right" Content="Abbrechen" Command="{Binding CancelUpdateCommand}"/>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="6" Text="{Binding Progress.CurrentItemUrlName}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
     </Grid>
 </dialogs:StylableWindow>

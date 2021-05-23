@@ -8,7 +8,7 @@ namespace Neralem.Warframe.Core.DOMs
     public enum ItemRarity { Undefined, Common, Uncommon, Rare }
     public enum RelicTier { Undefined, Lith, Meso, Neo, Axi }
 
-    public abstract class Item : IEquatable<Item>
+    public class Item : IEquatable<Item>
     {
         public string Id { get; }
         public string Name { get; set; }
@@ -39,7 +39,7 @@ namespace Neralem.Warframe.Core.DOMs
             }
         }
         
-        protected Item(string id)
+        public Item(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException(nameof(id));

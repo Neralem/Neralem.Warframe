@@ -101,7 +101,7 @@ namespace MarketCrawler.ViewModels
 
                         SaveToFile(MainVm.InventoryFilename);
                     },
-                    _ => true);
+                    param => param is InventoryEntryVm entry && entry.Item is PrimePart or PrimeSet);
             }
         }
 

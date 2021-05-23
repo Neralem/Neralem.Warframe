@@ -114,7 +114,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             CancellationToken ct, ItemCollection existingItems = null, bool updateExisting = true)
         {
             ItemCollection items = new();
-            JsonSerializer itemJsonSerializer = new() {Converters = {new ApiItemJsonConverter()}};
+            JsonSerializer itemJsonSerializer = new() { Converters = { new ApiItemJsonConverter() } };
             Dictionary<string, string[]> primeSetPartsTable = new();
             Dictionary<PrimePart, string[]> itemDropRelicTable = new();
 
@@ -124,15 +124,37 @@ namespace Neralem.Warframe.Core.DataAcquisition
             if (jItems is null || !jItems.Any())
                 throw new InvalidDataException();
 
+            string[] includedUrlNames = {
+                "vaykor_hek",
+                "vaykor_marelok",
+                "vaykor_sydon",
+                "telos_akbolto",
+                "telos_boltace",
+                "telos_boltor",
+                "synoid_gammacor",
+                "synoid_heliocor",
+                "synoid_simulor",
+                "secura_dual_cestra",
+                "secura_lecta",
+                "secura_penta",
+                "rakta_ballistica",
+                "rakta_cernos",
+                "rakta_dark_dagger",
+                "sancti_castanas",
+                "sancti_magistar",
+                "sancti_tigris",
+            };
+
             (string id, string urlName)[] itemsIds = jItems
                 .Select(x => (x["id"].ToObject<string>(), x["url_name"].ToObject<string>()))
-                .Where(x => x.Item2.EndsWith("_relic") && !x.Item2.StartsWith("requiem_") || x.Item2.Contains("_prime"))
+                .Where(x => x.Item2.EndsWith("_relic") && !x.Item2.StartsWith("requiem_") || x.Item2.Contains("_prime") || includedUrlNames.Contains(x.Item2))
                 .ToArray();
             if (!updateExisting && existingItems != null)
                 itemsIds = itemsIds
                     .Where(x => !existingItems.Select(item => item.Id).Contains(x.id))
                     .ToArray();
 
+            int miscCount = 0;
             int primePartCount = 0;
             int primeSetCount = 0;
             int relicCount = 0;
@@ -178,6 +200,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
                     }
                     else if (item is Relic)
                         relicCount++;
+                    else
+                        miscCount++;
 
                     if (item is not null)
                         items.Add(item);
@@ -191,7 +215,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
                         PrimePartCount = primePartCount,
                         PrimeSetCount = primeSetCount,
                         RelicCount = relicCount,
-                        ItemsLeft = itemsIds.Length - failedCount - primePartCount - primeSetCount - relicCount
+                        MiscCount = miscCount,
+                        ItemsLeft = itemsIds.Length - failedCount - primePartCount - primeSetCount - relicCount - miscCount
                     });
                 }
 
