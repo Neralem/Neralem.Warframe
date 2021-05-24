@@ -21,6 +21,30 @@ namespace MarketCrawler.ViewModels
 {
     public class MainVm : ViewModelBase
     {
+        #region constants
+
+        readonly string[] includedUrlNames = {
+            "vaykor_hek",
+            "vaykor_marelok",
+            "vaykor_sydon",
+            "telos_akbolto",
+            "telos_boltace",
+            "telos_boltor",
+            "synoid_gammacor",
+            "synoid_heliocor",
+            "synoid_simulor",
+            "secura_dual_cestra",
+            "secura_lecta",
+            "secura_penta",
+            "rakta_ballistica",
+            "rakta_cernos",
+            "rakta_dark_dagger",
+            "sancti_castanas",
+            "sancti_magistar",
+            "sancti_tigris",
+        };
+
+        #endregion
         #region Commands
 
         private ICommand loginCommand;
@@ -164,7 +188,8 @@ namespace MarketCrawler.ViewModels
 
                         OrderCollection newOrders = new();
                         Item[] itemsToScanFor = Items
-                            .Where(x => x is not Relic and not Mod).ToArray();
+                            .Where(x => x is PrimePart or  PrimeSet || includedUrlNames.Contains(x.UrlName))
+                            .ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
                         try

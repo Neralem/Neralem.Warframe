@@ -124,27 +124,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             if (jItems is null || !jItems.Any())
                 throw new InvalidDataException();
 
-            string[] includedUrlNames = {
-                "vaykor_hek",
-                "vaykor_marelok",
-                "vaykor_sydon",
-                "telos_akbolto",
-                "telos_boltace",
-                "telos_boltor",
-                "synoid_gammacor",
-                "synoid_heliocor",
-                "synoid_simulor",
-                "secura_dual_cestra",
-                "secura_lecta",
-                "secura_penta",
-                "rakta_ballistica",
-                "rakta_cernos",
-                "rakta_dark_dagger",
-                "sancti_castanas",
-                "sancti_magistar",
-                "sancti_tigris",
-            };
-
+            
             (string id, string urlName)[] itemsIds = jItems
                 .Select(x => (x["id"].ToObject<string>(), x["url_name"].ToObject<string>()))
                 .Where(x=> !x.Item2.StartsWith("requiem_"))
