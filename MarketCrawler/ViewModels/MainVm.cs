@@ -163,7 +163,8 @@ namespace MarketCrawler.ViewModels
                         IsDownloadingOrders = true;
 
                         OrderCollection newOrders = new();
-                        Item[] itemsToScanFor = Items.Where(x => x is not Relic).ToArray();
+                        Item[] itemsToScanFor = Items
+                            .Where(x => x is not Relic and not Mod).ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
                         try

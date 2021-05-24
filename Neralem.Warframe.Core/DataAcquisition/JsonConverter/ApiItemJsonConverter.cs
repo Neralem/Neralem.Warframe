@@ -35,6 +35,10 @@ namespace Neralem.Warframe.Core.DataAcquisition.JsonConverter
                     ? jObject.ToObject<PrimeSet>(new JsonSerializer { Converters = { new ApiPrimeSetJsonConverter() } })
                     : jObject.ToObject<PrimePart>(new JsonSerializer { Converters = { new ApiPrimePartJsonConverter() } });
             }
+            else if (tags.Contains("mod")) // mod or not mod thats the question?.
+            {
+                item = jObject.ToObject<Mod>(new JsonSerializer { Converters = { new ApiModJsonConverter() } });
+            }
             else
             {
                 string id = jObject["id"]?.ToObject<string>();

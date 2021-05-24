@@ -7,6 +7,8 @@ namespace Neralem.Warframe.Core.DOMs
 {
     public enum ItemRarity { Undefined, Common, Uncommon, Rare }
     public enum RelicTier { Undefined, Lith, Meso, Neo, Axi }
+    public enum ModType { Undefined, Meele, Primary, Secondary, Warframe }
+    public enum ModRarity { Undefined, Common, Uncommon, Rare, Primed }
 
     public class Item : IEquatable<Item>
     {
@@ -16,7 +18,7 @@ namespace Neralem.Warframe.Core.DOMs
         public int MasteryLevel { get; set; }
         public Order[] Orders { get; set; }
 
-        public double? AveragePrice
+        public virtual double? AveragePrice
         {
             get
             {
@@ -96,5 +98,39 @@ namespace Neralem.Warframe.Core.DOMs
 
         public Relic(string id) : base(id) { }
         public override string ToString() => $"{Name}   [Vaulted: {IsVaulted}]";
+    }
+
+    
+    public class Mod : Item
+    {
+        public ModType Type { get; set; }
+        public ModRarity ModRarity { get; set; }
+        public int MaxRank { get; set; }
+        
+        public Mod(string id) : base(id){}
+        public override string ToString() => $"{Name}  [Type: {Type}] [Rarity: {ModRarity}] [MaxRank: {MaxRank}]";
+        public override double? AveragePrice
+        {
+            get
+            {
+                if (Orders is null)
+                    return null;
+
+                Order[] orders = Orders
+                    .Where(x => x.OrderType == OrderType.Sell)
+                    .Where(x => x.Visible)
+                    .Where(x => x.User.OnlineStatus is OnlineStatus.Online or OnlineStatus.Ingame)
+                    .Where(x => x.Rank == 0)
+                    .OrderByDescending(x => x.User.OnlineStatus)
+                    .ThenBy(x => x.UnitPrice)
+                    .Take(6)
+                    .ToArray();
+
+                if (!orders.Any())
+                    return null;
+
+                return orders.Select(x => x.UnitPrice).Average();
+            }
+        }
     }
 }

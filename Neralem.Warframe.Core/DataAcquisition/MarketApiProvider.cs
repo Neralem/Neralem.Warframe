@@ -147,8 +147,9 @@ namespace Neralem.Warframe.Core.DataAcquisition
 
             (string id, string urlName)[] itemsIds = jItems
                 .Select(x => (x["id"].ToObject<string>(), x["url_name"].ToObject<string>()))
-                .Where(x => x.Item2.EndsWith("_relic") && !x.Item2.StartsWith("requiem_") || x.Item2.Contains("_prime") || includedUrlNames.Contains(x.Item2))
+                .Where(x=> !x.Item2.StartsWith("requiem_"))
                 .ToArray();
+                //.Where(x => x.Item2.EndsWith("_relic") && !x.Item2.StartsWith("requiem_") || x.Item2.Contains("_prime") || includedUrlNames.Contains(x.Item2))
             if (!updateExisting && existingItems != null)
                 itemsIds = itemsIds
                     .Where(x => !existingItems.Select(item => item.Id).Contains(x.id))
@@ -419,7 +420,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 UnitPrice = price,
                 OrderType = orderType,
                 CreationDate = creationDate,
-                ModificationDate = modifiedDate
+                ModificationDate = modifiedDate,
+                Rank = jOrder["mod_rank"]?.ToObject<int>()??0
             };
 
             return order;
