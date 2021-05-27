@@ -18,7 +18,7 @@ namespace Neralem.Warframe.Core.DOMs
         public int MasteryLevel { get; set; }
         public Order[] Orders { get; set; }
         
-        public virtual int Ducats { get; set; }
+        
         public virtual double? AveragePrice
         {
             get
@@ -72,7 +72,7 @@ namespace Neralem.Warframe.Core.DOMs
     public class PrimePart : Item
     {
         public List<Relic> DropsFrom { get; } = new();
-        public override int Ducats { get; set; }
+        public int Ducats { get; set; }
         public bool IsVaulted => DropsFrom.All(x => x.IsVaulted);
         public PrimeSet Set { get; set; }
         public PrimePart(string id) : base(id) { }
@@ -82,7 +82,7 @@ namespace Neralem.Warframe.Core.DOMs
     public class PrimeSet : Item
     {
         public List<PrimePart> Parts { get; } = new();
-        public override int Ducats => Parts.Sum(x => x.Ducats);
+        public int Ducats => Parts.Sum(x => x.Ducats);
         public Relic[] DropsFrom => Parts.SelectMany(x => x.DropsFrom).ToArray();
         public bool IsVaulted => Parts.Any(x => x.IsVaulted);
 
