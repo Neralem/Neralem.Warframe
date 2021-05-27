@@ -139,6 +139,8 @@ namespace Neralem.Warframe.Core.DataAcquisition
             int primePartCount = 0;
             int primeSetCount = 0;
             int relicCount = 0;
+            int modCount = 0;
+            int arcaneCount = 0;
             int failedCount = 0;
 
             foreach (var (id, urlName) in itemsIds)
@@ -181,6 +183,10 @@ namespace Neralem.Warframe.Core.DataAcquisition
                     }
                     else if (item is Relic)
                         relicCount++;
+                    else if (item is Mod)
+                        modCount++;
+                    else if (item is Arcane)
+                        arcaneCount++;
                     else
                         miscCount++;
 
@@ -196,8 +202,10 @@ namespace Neralem.Warframe.Core.DataAcquisition
                         PrimePartCount = primePartCount,
                         PrimeSetCount = primeSetCount,
                         RelicCount = relicCount,
+                        ModCount = modCount,
+                        ArcaneCount = arcaneCount,
                         MiscCount = miscCount,
-                        ItemsLeft = itemsIds.Length - failedCount - primePartCount - primeSetCount - relicCount - miscCount
+                        ItemsLeft = itemsIds.Length - failedCount - primePartCount - primeSetCount - modCount - arcaneCount - relicCount - miscCount
                     });
                 }
 

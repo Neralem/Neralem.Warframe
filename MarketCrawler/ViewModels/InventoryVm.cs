@@ -30,7 +30,7 @@ namespace MarketCrawler.ViewModels
                     {
                         if (param is not string itemName || string.IsNullOrWhiteSpace(itemName)) 
                             return;
-                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet && x.Name.Equals(itemName)) is not Item item)
+                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet or Mod && x.Name.Equals(itemName)) is not Item item)
                             return;
 
                         if (NewEntries.Concat(TrashEntries).FirstOrDefault(x => x.Item.Equals(item)) is InventoryEntryVm entry)
@@ -244,6 +244,7 @@ namespace MarketCrawler.ViewModels
         {
             CollectionViewSource.GetDefaultView(NewEntries)?.Refresh();
             CollectionViewSource.GetDefaultView(TrashEntries)?.Refresh();
+            NotifyPropertyChanged(nameof(NewItemsPlat));
         }
 
         public IEnumerable<string> ItemNames => MainVm.Items.Select(x => x.Name);

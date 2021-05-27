@@ -39,6 +39,10 @@ namespace Neralem.Warframe.Core.DataAcquisition.JsonConverter
             {
                 item = jObject.ToObject<Mod>(new JsonSerializer { Converters = { new ApiModJsonConverter() } });
             }
+            else if (urlName.Contains("arcane"))
+            {
+                item = jObject.ToObject<Arcane>(new JsonSerializer {Converters = {new ApiArcaneJsonConverter()}});
+            }
             else
             {
                 string id = jObject["id"]?.ToObject<string>();

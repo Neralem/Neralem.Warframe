@@ -64,7 +64,6 @@ namespace MarketCrawler.ViewModels
         {
             get
             {
-                
                 return deleteOwnOrderCommand ??= new RelayCommand(
                     async param =>
                     {
@@ -73,8 +72,6 @@ namespace MarketCrawler.ViewModels
                         {
                             MyOrders.Remove(vm.Order);
                             OrderViewModels = CreateOrderViewModels();
-                            
-
                         }
 
                     },

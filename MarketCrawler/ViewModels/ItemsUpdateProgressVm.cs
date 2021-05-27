@@ -46,7 +46,8 @@ namespace MarketCrawler.ViewModels
         }
 
         public int TotalItemsToDownload => progress is null ? 0 : progress.ItemsLeft + TotalItemCount;
-        public int TotalItemCount => progress is null ? 0 : Progress.MiscCount + Progress.PrimePartCount + progress.PrimeSetCount + progress.RelicCount + Progress.ItemsFailed;
+        public int TotalItemCount => progress is null ? 0 :
+            Progress.MiscCount + Progress.PrimePartCount + progress.PrimeSetCount+ progress.ModCount+ progress.ArcaneCount + progress.RelicCount + Progress.ItemsFailed;
 
         public double ProgressPercentage => (double)TotalItemCount / TotalItemsToDownload;
 

@@ -43,7 +43,15 @@
             <Run Text="Prime Sets: "/>
             <Run Text="{Binding Progress.PrimeSetCount, Mode=OneWay}"/>
         </TextBlock>
+        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Run Text="Mods: "/>
+            <Run Text="{Binding Progress.ModCount, Mode=OneWay}"/>
+        </TextBlock>
         <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Run Text="Arcane: "/>
+            <Run Text="{Binding Progress.ArcaneCount, Mode=OneWay}"/>
+        </TextBlock>
+        <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Run Text="Sonstige: "/>
             <Run Text="{Binding Progress.MiscCount, Mode=OneWay}"/>
         </TextBlock>

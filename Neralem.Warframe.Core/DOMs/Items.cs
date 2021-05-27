@@ -9,7 +9,7 @@ namespace Neralem.Warframe.Core.DOMs
     public enum RelicTier { Undefined, Lith, Meso, Neo, Axi }
     public enum ModType { Undefined, Meele, Primary, Secondary, Warframe }
     public enum ModRarity { Undefined, Common, Uncommon, Rare, Primed }
-
+    public enum ArcaneRarity { Undefined, Common, Uncommon, Rare, Legendary }
     public class Item : IEquatable<Item>
     {
         public string Id { get; }
@@ -17,7 +17,8 @@ namespace Neralem.Warframe.Core.DOMs
         public string UrlName { get; set; }
         public int MasteryLevel { get; set; }
         public Order[] Orders { get; set; }
-
+        
+        public virtual int Ducats { get; set; }
         public virtual double? AveragePrice
         {
             get
@@ -71,10 +72,9 @@ namespace Neralem.Warframe.Core.DOMs
     public class PrimePart : Item
     {
         public List<Relic> DropsFrom { get; } = new();
-        public int Ducats { get; set; }
-        public PrimeSet Set { get; set; }
+        public override int Ducats { get; set; }
         public bool IsVaulted => DropsFrom.All(x => x.IsVaulted);
-
+        public PrimeSet Set { get; set; }
         public PrimePart(string id) : base(id) { }
         public override string ToString() => $"{Name}   [Vaulted: {IsVaulted}]";
     }
@@ -82,7 +82,7 @@ namespace Neralem.Warframe.Core.DOMs
     public class PrimeSet : Item
     {
         public List<PrimePart> Parts { get; } = new();
-        public int Ducats => Parts.Sum(x => x.Ducats);
+        public override int Ducats => Parts.Sum(x => x.Ducats);
         public Relic[] DropsFrom => Parts.SelectMany(x => x.DropsFrom).ToArray();
         public bool IsVaulted => Parts.Any(x => x.IsVaulted);
 
@@ -95,7 +95,6 @@ namespace Neralem.Warframe.Core.DOMs
         public bool IsVaulted { get; set; }
         public Dictionary<Item, ItemRarity> Drops { get; } = new();
         public RelicTier Tier { get; set; }
-
         public Relic(string id) : base(id) { }
         public override string ToString() => $"{Name}   [Vaulted: {IsVaulted}]";
     }
@@ -132,5 +131,38 @@ namespace Neralem.Warframe.Core.DOMs
                 return orders.Select(x => x.UnitPrice).Average();
             }
         }
+    }
+
+
+    public class Arcane : Item
+    {
+        public Arcane(string id) : base(id){}
+        public ArcaneRarity ArcaneRarity { get; set; }
+        public int MaxRank { get; set; }
+        public override string ToString() => $"{Name}  [Rarity: {ArcaneRarity}] [MaxRank: {MaxRank}]";
+        public override double? AveragePrice
+        {
+            get
+            {
+                if (Orders is null)
+                    return null;
+
+                Order[] orders = Orders
+                    .Where(x => x.OrderType == OrderType.Sell)
+                    .Where(x => x.Visible)
+                    .Where(x => x.User.OnlineStatus is OnlineStatus.Online or OnlineStatus.Ingame)
+                    .Where(x => x.Rank == 0)
+                    .OrderByDescending(x => x.User.OnlineStatus)
+                    .ThenBy(x => x.UnitPrice)
+                    .Take(6)
+                    .ToArray();
+
+                if (!orders.Any())
+                    return null;
+
+                return orders.Select(x => x.UnitPrice).Average();
+            }
+        }
+
     }
 }

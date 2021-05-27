@@ -9,7 +9,7 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
 {
     public class LocalItemJsonConverter : JsonConverter<Item>
     {
-        internal enum ItemType { Undefined, Relic, PrimePart, PrimeSet, Mod }
+        internal enum ItemType { Undefined, Relic, PrimePart, PrimeSet, Mod, Arcane }
 
         public override bool CanRead => true;
         public override bool CanWrite => true;
@@ -53,6 +53,12 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
                 jObject.Add("modRarity", (int)mod.ModRarity);
                 jObject.Add("maxRank", mod.MaxRank);
             }
+            else if (value is Arcane arcane)
+            {
+                jObject.Add("itemType",(int)ItemType.Arcane);
+                jObject.Add("arcaneRarity",(int)arcane.ArcaneRarity);
+                jObject.Add("maxRank",arcane.MaxRank);
+            }
             else
                 jObject.Add("itemType", (int)ItemType.Undefined);
 
@@ -87,6 +93,12 @@ namespace Neralem.Warframe.Core.DataStorage.JsonConverter
                     mod.Type = jObject["modType"]?.ToObject<ModType>() ?? ModType.Undefined;
                     mod.ModRarity = jObject["modRarity"]?.ToObject<ModRarity>() ?? ModRarity.Undefined;
                     mod.MaxRank = jObject["maxRank"]?.ToObject<int>() ?? 0;
+                    break;
+                case ItemType.Arcane:
+                    item = new Arcane(id);
+                    Arcane arcane = (Arcane) item;
+                    arcane.ArcaneRarity = jObject["rarity"]?.ToObject<ArcaneRarity>() ?? ArcaneRarity.Undefined;
+                    arcane.MaxRank = jObject["maxRank"]?.ToObject<int>() ?? 0;
                     break;
                 default:
                     item = new Item(id);
