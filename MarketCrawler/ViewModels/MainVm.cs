@@ -45,7 +45,45 @@ namespace MarketCrawler.ViewModels
         };
 
         #endregion
+
         #region Commands
+
+        private ICommand initCommand;
+        public ICommand InitCommand
+        {
+            get
+            {
+                return initCommand ??= new RelayCommand(
+                    async _ =>
+                    {
+                        await UpdateItemsAsync();
+
+                        LoginVm loginVm = new LoginVm(ApiProvider, this);
+                        if (!string.IsNullOrWhiteSpace(loginVm.EmailAddress) && loginVm.Password?.Length > 0)
+                        {
+                            try
+                            {
+                                if (await ApiProvider.TryLoginAsync(loginVm.EmailAddress, loginVm.Password) is User user)
+                                {
+                                    PopupText = $"Successfully logged in as \"{user.Name}\"";
+                                    PopupVisible = true;
+                                }
+                            }
+                            catch
+                            {
+                                PopupText = $"Failed to login as \"{loginVm.EmailAddress}\"";
+                                PopupVisible = true;
+                            }
+
+                            if (ApiProvider.CurrentUser is not null)
+                                await MyOrdersVm.CaptureOrdersAsync();
+                        }
+
+                        UpdateOrdersCommand.Execute(null);
+                    },
+                    _ => true);
+            }
+        }
 
         private ICommand loginCommand;
         public ICommand LoginCommand
@@ -58,7 +96,7 @@ namespace MarketCrawler.ViewModels
                         if (param is not Window window)
                             return;
 
-                        DlgLogin loginDialog = new DlgLogin { Owner = window, DataContext = new LoginVm(ApiProvider, this) };
+                        DlgLogin loginDialog = new() { Owner = window, DataContext = new LoginVm(ApiProvider, this) };
                         loginDialog.ShowDialog();
 
                         User user = (loginDialog.DataContext as LoginVm)?.User;
@@ -110,72 +148,6 @@ namespace MarketCrawler.ViewModels
             }
         }
 
-        private ICommand updateItemsCommand;
-        public ICommand UpdateItemsCommand
-        {
-            get
-            {
-                return updateItemsCommand ??= new RelayCommand(
-                    async _ =>
-                    {
-                        try
-                        {
-                            CancellationTokenSource updateCtr = new();
-                            Progress<ItemUpdateProgress> progress = new();
-                            Task<ItemCollection> getItemsTask =
-                                ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items,
-                                    UpdateAllItems);
-                            ItemsUpdateProgressDialog updateProgressDialog =
-                                new() {Owner = Application.Current.MainWindow};
-                            ItemsUpdateProgressVm progressVm = new(progress, updateCtr)
-                                {Closeable = updateProgressDialog};
-                            updateProgressDialog.DataContext = progressVm;
-                            updateProgressDialog.ShowDialog();
-                            ItemCollection newItems = await getItemsTask;
-                            if (newItems?.Any() ?? false)
-                            {
-                                if (!UpdateAllItems)
-                                {
-                                    Items.AddRange(newItems);
-                                    Items = new ItemCollection(Items.OrderBy(x => x.Name));
-                                }
-                                else
-                                    Items = new ItemCollection(newItems.OrderBy(x => x.Name));
-                            }
-
-                            await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
-                            Items.ToFile(ItemsFilename);
-                        }
-                        catch (TaskCanceledException) { }
-                        catch (HttpRequestException) { ExtMessageBox.Show("Warframe.Market Unavailable", "Warframe.Market antwortet nicht.", MessageBoxButton.OK, MessageBoxImage.Asterisk); }
-
-                        LoginVm loginVm = new LoginVm(ApiProvider, this);
-                        if (!string.IsNullOrWhiteSpace(loginVm.EmailAddress) && loginVm.Password?.Length > 0)
-                        {
-                            try
-                            {
-                                if (await ApiProvider.TryLoginAsync(loginVm.EmailAddress, loginVm.Password) is User user)
-                                {
-                                    PopupText = $"Successfully logged in as \"{user.Name}\"";
-                                    PopupVisible = true;
-                                }
-                            }
-                            catch
-                            {
-                                PopupText = $"Failed to login as \"{loginVm.EmailAddress}\"";
-                                PopupVisible = true;
-                            }
-
-                            if (ApiProvider.CurrentUser is not null)
-                                (MyOrdersVm.GetOrdersCommand as RelayCommand)?.ExecuteIfCanExecute(null);
-                        }
-
-                        UpdateOrdersCommand.Execute(null);
-                    },
-                    _ => true);
-            }
-        }
-
         private ICommand updateOrdersCommand;
         public ICommand UpdateOrdersCommand
         {
@@ -189,6 +161,8 @@ namespace MarketCrawler.ViewModels
                         OrderCollection newOrders = new();
                         Item[] itemsToScanFor = Items
                             .Where(x => x is PrimePart or  PrimeSet || includedUrlNames.Contains(x.UrlName))
+                            .Concat(MyOrdersVm.MyOrders.Select(x => x.Item))
+                            .Distinct()
                             .ToArray();
                         
                         int itemsFailed = 0, itemsDone = 0;
@@ -213,7 +187,7 @@ namespace MarketCrawler.ViewModels
                                     itemsDone++;
                                 }
 #if DEBUG
-                                if (itemsDone >= 10)
+                                if (itemsDone >= 30)
                                     break;
 #endif
                                 await Task.Delay(100);
@@ -278,6 +252,7 @@ namespace MarketCrawler.ViewModels
                     _ => true);
             }
         }
+
         private ICommand searchOrderCommand;
         public ICommand SearchOrderCommand
         {
@@ -508,6 +483,40 @@ namespace MarketCrawler.ViewModels
             InventoryVm.LoadFromFile(InventoryFilename);
             MyOrdersVm = new MyOrdersVm(this);
             _ordersUpdateProgress.ProgressChanged += (_, progress) => OrdersUpdateProgress = progress;
+        }
+
+        public async Task UpdateItemsAsync()
+        {
+            try
+            {
+                CancellationTokenSource updateCtr = new();
+                Progress<ItemUpdateProgress> progress = new();
+                Task<ItemCollection> getItemsTask =
+                    ApiProvider.GetItemCatalogFromApiAsync(progress, updateCtr.Token, Items,
+                        UpdateAllItems);
+                ItemsUpdateProgressDialog updateProgressDialog =
+                    new() { Owner = Application.Current.MainWindow };
+                ItemsUpdateProgressVm progressVm = new(progress, updateCtr)
+                    { Closeable = updateProgressDialog };
+                updateProgressDialog.DataContext = progressVm;
+                updateProgressDialog.ShowDialog();
+                ItemCollection newItems = await getItemsTask;
+                if (newItems?.Any() ?? false)
+                {
+                    if (!UpdateAllItems)
+                    {
+                        Items.AddRange(newItems);
+                        Items = new ItemCollection(Items.OrderBy(x => x.Name));
+                    }
+                    else
+                        Items = new ItemCollection(newItems.OrderBy(x => x.Name));
+                }
+
+                await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
+                Items.ToFile(ItemsFilename);
+            }
+            catch (TaskCanceledException) { }
+            catch (HttpRequestException) { ExtMessageBox.Show("Warframe.Market Unavailable", "Warframe.Market antwortet nicht.", MessageBoxButton.OK, MessageBoxImage.Asterisk); }
         }
 
         private OrderCollection FilterOrders()

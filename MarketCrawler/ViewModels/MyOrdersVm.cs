@@ -15,7 +15,7 @@ namespace MarketCrawler.ViewModels
 
         public MyOrdersVm(MainVm mainVm) => MainVm = mainVm;
 
-        private async Task CaptureOrdersAsync()
+        public async Task CaptureOrdersAsync()
         {
             if (MainVm.ApiProvider.CurrentUser is null)
                 return;

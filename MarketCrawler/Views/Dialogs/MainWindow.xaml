@@ -30,7 +30,7 @@
 
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
-            <b:InvokeCommandAction Command="{Binding Path=UpdateItemsCommand}"/>
+            <b:InvokeCommandAction Command="{Binding Path=InitCommand}"/>
         </b:EventTrigger>
     </b:Interaction.Triggers>
 
