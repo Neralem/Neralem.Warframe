@@ -512,7 +512,15 @@ namespace MarketCrawler.ViewModels
                         Items = new ItemCollection(newItems.OrderBy(x => x.Name));
                 }
 
-                await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
+                try
+                {
+                    await ApiProvider.SetVaultedRelics(Items.OfType<Relic>().ToArray());
+                }
+                catch (InvalidDataException)
+                {
+                    ExtMessageBox.Show("Fehler", "Die Reliktinformationen konnten nicht abgerufen werden. Informationen darüber welche Relikte vaulted sind, können falsch sein.",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
                 Items.ToFile(ItemsFilename);
             }
             catch (TaskCanceledException) { }

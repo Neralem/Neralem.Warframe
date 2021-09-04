@@ -315,7 +315,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             string vaultedRelicsTableHtml =
                 await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data");
 
-            Match tableMatch = Regex.Match(vaultedRelicsTableHtml, $@"(local VoidData = .+?in ipairs)",
+            Match tableMatch = Regex.Match(vaultedRelicsTableHtml, @"RelicData = {\n\t(.+?)---",
                 RegexOptions.Singleline);
             if (!tableMatch.Success)
                 throw new InvalidDataException();
@@ -323,7 +323,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
             string vaultedRelicsTableLua = tableMatch.Groups[1].Value;
 
             MatchCollection matches = Regex.Matches(vaultedRelicsTableLua,
-                @"{ Tier = &quot;(\w+)&quot;, Name = &quot;(\w\d+)&quot;,.+? = (0|1)", RegexOptions.Singleline);
+                @"Name = &quot;(\w\d+)&quot;,\n\t\tTier = &quot;(\w+)&quot;.*?\n\t}", RegexOptions.Singleline);
             if (!matches.Any())
                 throw new InvalidDataException();
 
@@ -332,7 +332,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 if (!match.Success)
                     throw new InvalidDataException();
 
-                string relicName = $"{match.Groups[1].Value} {match.Groups[2].Value}";
+                string relicName = $"{match.Groups[2].Value} {match.Groups[1].Value}";
 
                 Relic relic = relicsToUpdate.FirstOrDefault(x =>
                     x.Name.Equals(relicName, StringComparison.InvariantCultureIgnoreCase));
@@ -340,22 +340,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 if (relic is null)
                     continue;
 
-                if (match.Groups[0].Value.Contains("IsBaro = 1"))
-                    relic.IsVaulted = false;
-                else
-                {
-                    switch (match.Groups[3].Value)
-                    {
-                        case "0":
-                            relic.IsVaulted = false;
-                            break;
-                        case "1":
-                            relic.IsVaulted = true;
-                            break;
-                        default:
-                            throw new InvalidDataException();
-                    }
-                }
+                relic.IsVaulted = match.Groups[0].Value.Contains("Vaulted");
             }
         }
 
