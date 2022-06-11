@@ -94,7 +94,7 @@ namespace MarketCrawler.ViewModels
 
         #region Binding Properties
 
-        private OrderCollection myOrders;
+        private OrderCollection myOrders = new();
         public OrderCollection MyOrders
         {
             get => myOrders;

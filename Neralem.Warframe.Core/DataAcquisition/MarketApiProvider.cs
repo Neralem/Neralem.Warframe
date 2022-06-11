@@ -313,34 +313,45 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 return;
 
             string vaultedRelicsTableHtml =
-                await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data");
+                (await client.GetStringAsync("https://warframe.fandom.com/wiki/Module:Void/data"));
+
 
             Match tableMatch = Regex.Match(vaultedRelicsTableHtml, @"RelicData = {\n\t(.+?)---",
                 RegexOptions.Singleline);
             if (!tableMatch.Success)
                 throw new InvalidDataException();
 
-            string vaultedRelicsTableLua = tableMatch.Groups[1].Value;
+            string vaultedRelicsTable = "{" + tableMatch.Groups[1].Value
+                .Replace("&quot;", "\"")
+                .Replace("[", "")
+                .Replace("]", "")
+                .Replace("=", ":");
 
-            MatchCollection matches = Regex.Matches(vaultedRelicsTableLua,
-                @"Name = &quot;(\w\d+)&quot;,\n\t\tTier = &quot;(\w+)&quot;.*?\n\t}", RegexOptions.Singleline);
-            if (!matches.Any())
+            vaultedRelicsTable = Regex.Replace(vaultedRelicsTable, @"""Drops"" : {", @"""Drops"" : [", RegexOptions.Singleline);
+            vaultedRelicsTable = Regex.Replace(vaultedRelicsTable, @"},\s+""Introduced""", @"], ""Introduced""", RegexOptions.Singleline);
+
+            var relicJTokens = JsonConvert.DeserializeObject<JObject>(vaultedRelicsTable)?
+                .Children()
+                .Select(x => x.Children().First())
+                .ToArray();
+
+            if (relicJTokens is null || !relicJTokens.Any())
                 throw new InvalidDataException();
 
-            foreach (Match match in matches)
+            foreach (var relicToken in relicJTokens)
             {
-                if (!match.Success)
+                var name = relicToken["Name"]?.ToObject<string>();
+
+                if (string.IsNullOrWhiteSpace(name))
                     throw new InvalidDataException();
 
-                string relicName = $"{match.Groups[2].Value} {match.Groups[1].Value}";
-
                 Relic relic = relicsToUpdate.FirstOrDefault(x =>
-                    x.Name.Equals(relicName, StringComparison.InvariantCultureIgnoreCase));
+                    x.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
 
                 if (relic is null)
                     continue;
 
-                relic.IsVaulted = match.Groups[0].Value.Contains("Vaulted");
+                relic.IsVaulted = relicToken["Vaulted"] is not null;
             }
         }
 
@@ -411,7 +422,7 @@ namespace Neralem.Warframe.Core.DataAcquisition
                 {
                     ordersJArray = JObject.Parse(await client.GetStringAsync(baseEndpoint + $"items/{item.UrlName}/orders"))["payload"]?["orders"]?.ToObject<JArray>();
                 }
-                catch (WebException)
+                catch (HttpRequestException)
                 {
                     await Task.Delay(333);
                     tries++;
