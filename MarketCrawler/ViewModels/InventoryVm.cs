@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Neralem.Wpf.UI.Dialogs;
 using System.Windows;
@@ -25,25 +26,14 @@ namespace MarketCrawler.ViewModels
         {
             get
             {
-                return addEntryCommand ??= new RelayCommand(
-                    param =>
+                return addEntryCommand ??= new RelayCommand(async param =>
                     {
                         if (param is not string itemName || string.IsNullOrWhiteSpace(itemName)) 
                             return;
-                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet or Mod && x.Name.Equals(itemName)) is not Item item)
+                        if (MainVm.Items.FirstOrDefault(x => x is PrimePart or PrimeSet or Mod && x.Name.Equals(itemName)) is not { } item)
                             return;
 
-                        if (NewEntries.Concat(TrashEntries).FirstOrDefault(x => x.Item.Equals(item)) is InventoryEntryVm entry)
-                            entry.Quantity++;
-                        else
-                            NewEntries.Add(new InventoryEntryVm(this, item));
-                                                
-                        ItemText = "";
-
-                        MainVm.PopupText = $"\"{item.Name}\" hinzugefügt";
-                        MainVm.PopupVisible = true;
-
-                        SaveToFile(MainVm.InventoryFilename);
+                        await AddEntryAsync(item, 1);
                     },
                     _ => true);
             }
@@ -322,8 +312,44 @@ namespace MarketCrawler.ViewModels
                 AllChecked = null;
             else
                 AllChecked=false;
-            
         }
+
+        public async Task AddEntryAsync(Item item, int amount)
+        {
+            if (MainVm.ApiProvider.CurrentUser is not null)
+            {
+                while (!MainVm.MyOrdersVm.GetOrdersCommand.CanExecute(null))
+                    await Task.Delay(500);
+
+                await MainVm.MyOrdersVm.CaptureOrdersAsync();
+
+                OrderViewModel orderVm = MainVm.MyOrdersVm.OrderViewModels.FirstOrDefault(x => x.Order.Item == item);
+
+                if (orderVm is not null)
+                {
+                    await MainVm.ApiProvider.UpdateOrderAsync(orderVm.Order, orderVm.UnitPrice, orderVm.Quantity + amount, orderVm.Visible);
+                    orderVm.Quantity += amount;
+                    ItemText = "";
+
+                    MainVm.PopupText = $"{amount}x \"{item.Name}\" zu bestehender Order hinzugefügt";
+                    MainVm.PopupVisible = true;
+                    return;
+                }
+            }
+
+            if (NewEntries.Concat(TrashEntries).FirstOrDefault(x => x.Item.Equals(item)) is { } entry)
+                entry.Quantity++;
+            else
+                NewEntries.Add(new InventoryEntryVm(this, item) { Quantity = amount });
+
+            ItemText = "";
+
+            MainVm.PopupText = $"{amount}x \"{item.Name}\" hinzugefügt";
+            MainVm.PopupVisible = true;
+
+            SaveToFile(MainVm.InventoryFilename);
+        }
+
         public void SaveToFile(string filename)
         {
             JObject jObject = new();

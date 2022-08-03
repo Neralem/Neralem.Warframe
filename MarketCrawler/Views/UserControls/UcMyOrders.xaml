@@ -39,10 +39,18 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn>
+                <DataGridTemplateColumn IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <controls:ExtButton Content="Delete" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid},Mode=FindAncestor},Path=DataContext.DeleteOwnOrderCommand}"
+                                                CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <controls:ExtButton Content="Send to inventory" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DataGrid},Mode=FindAncestor},Path=DataContext.SendToInventoryCommand}"
                                                 CommandParameter="{Binding}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

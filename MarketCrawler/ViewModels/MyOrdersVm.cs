@@ -79,6 +79,27 @@ namespace MarketCrawler.ViewModels
 
             }
         }
+
+        private ICommand sendToInventoryCommand;
+        public ICommand SendToInventoryCommand
+        {
+            get
+            {
+                return sendToInventoryCommand ??= new RelayCommand(
+                    async param =>
+                    {
+                        if (param is not OrderViewModel vm) return;
+                        if (await DeleteOwnOrderAsync(vm))
+                        {
+                            MyOrders.Remove(vm.Order);
+                            OrderViewModels = CreateOrderViewModels();
+                            await MainVm.InventoryVm.AddEntryAsync(vm.Order.Item, vm.Quantity);
+                        }
+                    },
+                    _ => !IsBusy && MyOrders != null);
+            }
+        }
+
         private ICommand updateOrderPricesCommand;
         public ICommand UpdateOrderPricesCommand
         {
