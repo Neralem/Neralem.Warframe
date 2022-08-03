@@ -119,6 +119,8 @@ namespace MarketCrawler.ViewModels
             }
         }
 
+        public int Ducats => Order.Item is PrimePart primeItem ? primeItem.Ducats : 0;
+
         #endregion
     }
 }

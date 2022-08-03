@@ -31,6 +31,7 @@
                 <DataGridTextColumn Header="Preis" Binding="{Binding UnitPrice}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="∅ Preis" Binding="{Binding Order.Item.AveragePrice, StringFormat=N1}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Anzahl" Binding="{Binding Quantity}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Ducats" Binding="{Binding Ducats}" IsReadOnly="True"/>
                 <DataGridTemplateColumn IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type viewModels:OrderViewModel}">
