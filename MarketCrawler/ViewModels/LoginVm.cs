@@ -113,7 +113,16 @@ namespace MarketCrawler.ViewModels
             EmailAddress = jObject["email"]?.ToObject<string>() ?? string.Empty;
             byte[] encryptedPassword = jObject["password"]?.ToObject<byte[]>();
             if (encryptedPassword is not null && encryptedPassword.Length > 0)
-                Password = SecureStringExtensions.FromByteArray(ProtectedData.Unprotect(encryptedPassword, null, DataProtectionScope.LocalMachine));
+            {
+                try
+                {
+                    Password = SecureStringExtensions.FromByteArray(ProtectedData.Unprotect(encryptedPassword, null, DataProtectionScope.LocalMachine));
+                }
+                catch (CryptographicException)
+                {
+                    ExtMessageBox.Show("Zugangsdaten verschlüsselt", "Die hinterlegten Zugangsdaten von warframe.market wurden auf einem anderen Computer verschlüsselt und können auch nur von diesem wieder entschüsselt werden. Bitte melde dich neu an.");
+                }
+            }
         }
 
         private static string UserDataFilename => "LoginData.json";
